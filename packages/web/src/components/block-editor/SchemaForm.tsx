@@ -179,7 +179,7 @@ const ArrayInput: Component<{
         <span class="text-xs font-semibold opacity-50 uppercase tracking-wider">
           {props.field.label}
         </span>
-        <button class="btn btn-xs btn-outline btn-primary" onClick={addItem}>
+        <button type="button" class="btn btn-xs btn-outline btn-primary" onClick={addItem}>
           + Add
         </button>
       </div>
@@ -189,6 +189,7 @@ const ArrayInput: Component<{
           {(item, index) => (
             <div class="rounded-box border border-base-content/10 bg-base-200/60 p-3 relative">
               <button
+                type="button"
                 class="btn btn-xs btn-ghost btn-circle absolute top-2 right-2 text-error"
                 onClick={() => removeItem(index())}
                 title="Remove"

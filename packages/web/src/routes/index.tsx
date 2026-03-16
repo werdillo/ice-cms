@@ -1,18 +1,33 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
-import BlockEditor from '../components/block-editor/BlockEditor'
-import { faqSectionMeta } from '@ice-cms/schemas'
-import type { Lang } from '@ice-cms/schemas'
+import SortableBlockList, {
+  type BlockState,
+} from '../components/block-editor/SortableBlockList'
+import { faqSectionMeta, solutionSectionMeta } from '@ice-cms/schemas'
 
 export const Route = createFileRoute('/')({ component: App })
 
+function makeBlock(
+  meta: BlockState['meta'],
+  index: number
+): BlockState {
+  return {
+    id: `${meta.type}-${index}`,
+    meta,
+    data: {
+      lv: meta.defaultData() as unknown as Record<string, unknown>,
+      en: meta.defaultData() as unknown as Record<string, unknown>,
+      ru: meta.defaultData() as unknown as Record<string, unknown>,
+    },
+    enabled: true,
+  }
+}
+
 function App() {
-  const [data, setData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>({
-    lv: faqSectionMeta.defaultData() as unknown as Record<string, unknown>,
-    en: faqSectionMeta.defaultData() as unknown as Record<string, unknown>,
-    ru: faqSectionMeta.defaultData() as unknown as Record<string, unknown>,
-  })
-  const [enabled, setEnabled] = createSignal(true)
+  const [blocks, setBlocks] = createSignal<BlockState[]>([
+    makeBlock(solutionSectionMeta, 0),
+    makeBlock(faqSectionMeta, 1),
+  ])
 
   return (
     <div class="min-h-screen bg-base-200 p-8">
@@ -22,26 +37,17 @@ function App() {
         <div>
           <h1 class="text-2xl font-bold">Page Editor</h1>
           <p class="text-sm opacity-50 mt-1">
-            Click <span class="font-semibold">Edit</span> to open the block editor. Switch languages with the tabs inside.
+            Drag <span class="font-semibold">⠿</span> to reorder blocks. Click{' '}
+            <span class="font-semibold">Edit</span> to open the editor.
           </p>
         </div>
 
-        {/* Blocks list */}
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
-              Blocks
-            </span>
-          </div>
-
-          <BlockEditor
-            meta={faqSectionMeta}
-            data={data()}
-            enabled={enabled()}
-            order={0}
-            onChange={setData}
-            onToggle={setEnabled}
-          />
+        {/* Blocks */}
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
+            Blocks
+          </span>
+          <SortableBlockList blocks={blocks()} onChange={setBlocks} />
         </div>
 
         {/* JSON preview */}
@@ -52,7 +58,15 @@ function App() {
           </div>
           <div class="collapse-content">
             <pre class="text-xs overflow-x-auto bg-base-200 rounded-box p-4">
-              {JSON.stringify({ enabled: enabled(), data: data() }, null, 2)}
+              {JSON.stringify(
+                blocks().map((b) => ({
+                  type: b.meta.type,
+                  enabled: b.enabled,
+                  data: b.data,
+                })),
+                null,
+                2
+              )}
             </pre>
           </div>
         </div>
