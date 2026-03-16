@@ -1,0 +1,36 @@
+# Build outputs
+dist
+.output
+.wrangler
+.vercel
+.netlify
+.vinxi
+app.config.timestamp_*.js
+
+# Environment
+.env
+.env*.local
+
+# Dependencies
+node_modules
+**/node_modules
+
+# Bun
+bun.lockb
+*.bun
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+.vscode/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Temp
+gitignore
+*.log
