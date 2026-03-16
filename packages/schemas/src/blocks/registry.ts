@@ -1,5 +1,6 @@
 import { solutionSectionMeta, solutionSectionSchema } from './solution-section'
 import { faqSectionMeta } from './faq-section'
+import { contactSectionMeta } from './contact-section'
 import { z } from 'zod'
 import type { Lang } from '../base'
 
@@ -18,6 +19,7 @@ export type BlockMeta<T extends z.ZodTypeAny = z.ZodTypeAny> = {
 export const blockRegistry = [
   solutionSectionMeta,
   faqSectionMeta,
+  contactSectionMeta,
 ] as const satisfies readonly BlockMeta[]
 
 // --- Lookup by type ---
