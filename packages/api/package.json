@@ -3,17 +3,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
-    "start": "bun run src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target bun"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply ice-cms-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply ice-cms-db --remote",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.3",
+    "@ice-cms/schemas": "workspace:*",
+    "drizzle-orm": "^0.44.0",
     "hono": "^4.7.11",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250515.0",
+    "drizzle-kit": "^0.31.0",
     "typescript": "^5.9.2",
-    "@types/bun": "latest"
+    "wrangler": "^4.0.0"
   }
 }

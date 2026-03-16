@@ -1,19 +1,22 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import { prettyJSON } from 'hono/pretty-json'
-import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
+import { createDb } from './db'
 
-const app = new Hono().basePath('/api')
+export type Env = {
+  DB: D1Database
+  ENVIRONMENT: string
+  DEPLOY_HOOK_URL: string
+}
+
+const app = new Hono<{ Bindings: Env }>()
 
 // --- Middleware ---
 app.use('*', logger())
-app.use('*', prettyJSON())
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', 'https://ice-cms.pages.dev'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -21,90 +24,105 @@ app.use(
 )
 
 // --- Health check ---
-app.get('/health', (c) => {
+app.get('/api/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-// --- Posts (example resource) ---
-type Post = {
-  id: string
-  title: string
-  body: string
-  createdAt: string
-}
+// --- Publish (trigger Astro rebuild) ---
+app.post('/api/publish', async (c) => {
+  const webhookUrl = c.env.DEPLOY_HOOK_URL
 
-// In-memory store for demo purposes
-const posts: Post[] = [
-  {
-    id: '1',
-    title: 'Hello Ice CMS',
-    body: 'This is the first post from the Ice CMS API.',
-    createdAt: new Date().toISOString(),
-  },
-]
-
-const createPostSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  body: z.string().min(1, 'Body is required'),
-})
-
-const postsRouter = new Hono()
-
-postsRouter.get('/', (c) => {
-  return c.json({ data: posts, total: posts.length })
-})
-
-postsRouter.get('/:id', (c) => {
-  const id = c.req.param('id')
-  const post = posts.find((p) => p.id === id)
-
-  if (!post) {
-    return c.json({ error: 'Post not found' }, 404)
+  if (!webhookUrl) {
+    return c.json({ error: 'DEPLOY_HOOK_URL is not configured' }, 500)
   }
 
-  return c.json({ data: post })
-})
+  const res = await fetch(webhookUrl, { method: 'POST' })
 
-postsRouter.post('/', zValidator('json', createPostSchema), (c) => {
-  const body = c.req.valid('json')
-  const newPost: Post = {
-    id: String(posts.length + 1),
-    title: body.title,
-    body: body.body,
-    createdAt: new Date().toISOString(),
+  if (!res.ok) {
+    return c.json({ error: 'Deploy hook failed', status: res.status }, 502)
   }
 
-  posts.push(newPost)
-  return c.json({ data: newPost }, 201)
+  return c.json({ success: true, message: 'Deploy triggered' })
 })
 
-postsRouter.put('/:id', zValidator('json', createPostSchema), (c) => {
-  const id = c.req.param('id')
-  const body = c.req.valid('json')
-  const index = posts.findIndex((p) => p.id === id)
+// --- Pages ---
+app.get('/api/pages', async (c) => {
+  const db = createDb(c.env.DB)
+  const pages = await db.query.pages.findMany()
+  return c.json({ data: pages })
+})
 
-  if (index === -1) {
-    return c.json({ error: 'Post not found' }, 404)
+app.get('/api/pages/:slug', async (c) => {
+  const slug = c.req.param('slug')
+  const db = createDb(c.env.DB)
+
+  const page = await db.query.pages.findFirst({
+    where: (pages, { eq }) => eq(pages.slug, slug),
+  })
+
+  if (!page) {
+    return c.json({ error: 'Page not found' }, 404)
   }
 
-  posts[index] = { ...posts[index], ...body }
-  return c.json({ data: posts[index] })
+  const [meta, layout, blocks] = await Promise.all([
+    db.query.pageMeta.findMany({
+      where: (m, { eq }) => eq(m.pageId, page.id),
+    }),
+    db.query.pageLayout.findMany({
+      where: (l, { eq }) => eq(l.pageId, page.id),
+    }),
+    db.query.blocks.findMany({
+      where: (b, { eq }) => eq(b.pageId, page.id),
+      orderBy: (b, { asc }) => [asc(b.order)],
+    }),
+  ])
+
+  const blockIds = blocks.map((b) => b.id)
+  const translations =
+    blockIds.length > 0
+      ? await db.query.blockTranslations.findMany({
+          where: (t, { inArray }) => inArray(t.blockId, blockIds),
+        })
+      : []
+
+  // Shape into final JSON for Astro
+  const metaByLang = Object.fromEntries(
+    meta.map((m) => [m.lang, { ...m, id: undefined, pageId: undefined, lang: undefined }])
+  )
+
+  const layoutByLang = Object.fromEntries(
+    layout.map((l) => [
+      l.lang,
+      {
+        header: JSON.parse(l.header),
+        footer: JSON.parse(l.footer),
+        sidebar: JSON.parse(l.sidebar),
+      },
+    ])
+  )
+
+  const blocksFormatted = blocks.map((block) => {
+    const blockTranslations = translations.filter((t) => t.blockId === block.id)
+    const data = Object.fromEntries(
+      blockTranslations.map((t) => [t.lang, JSON.parse(t.data)])
+    )
+    return {
+      id: block.id,
+      type: block.type,
+      order: block.order,
+      enabled: block.enabled,
+      data,
+    }
+  })
+
+  return c.json({
+    data: {
+      meta: metaByLang,
+      layout: layoutByLang,
+      blocks: blocksFormatted,
+    },
+  })
 })
-
-postsRouter.delete('/:id', (c) => {
-  const id = c.req.param('id')
-  const index = posts.findIndex((p) => p.id === id)
-
-  if (index === -1) {
-    return c.json({ error: 'Post not found' }, 404)
-  }
-
-  const deleted = posts.splice(index, 1)[0]
-  return c.json({ data: deleted })
-})
-
-// --- Mount routers ---
-app.route('/posts', postsRouter)
 
 // --- 404 fallback ---
 app.notFound((c) => {
@@ -117,11 +135,6 @@ app.onError((err, c) => {
   return c.json({ error: 'Internal server error' }, 500)
 })
 
-const PORT = Number(process.env.PORT ?? 8000)
-
-console.log(`🔥 Ice CMS API running on http://localhost:${PORT}`)
-
 export default {
-  port: PORT,
   fetch: app.fetch,
-}
+} satisfies ExportedHandler<Env>
