@@ -1,43 +1,73 @@
 import { Link } from '@tanstack/solid-router'
+import { createSignal, onMount } from 'solid-js'
+
+type Theme = 'light' | 'dark'
+
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark'
+  return (localStorage.getItem('theme') as Theme) ?? 'dark'
+}
 
 export default function Header() {
+  const [theme, setTheme] = createSignal<Theme>('dark')
+
+  onMount(() => {
+    const saved = getInitialTheme()
+    setTheme(saved)
+    document.documentElement.setAttribute('data-theme', saved)
+  })
+
+  const toggleTheme = () => {
+    const next: Theme = theme() === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('theme', next)
+  }
+
   return (
-    <header class="site-header px-4">
-      <nav class="page-wrap nav-shell">
-        <h2 class="m-0 flex-shrink-0 text-base font-semibold tracking-tight">
-          <Link to="/" class="brand-pill">
-            <span class="brand-dot" />
-            TanStack Start
-          </Link>
-        </h2>
+    <header class="sticky top-0 z-30 w-full border-b border-base-content/10 bg-base-100/80 backdrop-blur-md">
+      <div class="mx-auto flex max-w-5xl items-center gap-4 px-6 py-3">
+        {/* Logo */}
+        <Link to="/" class="flex items-center gap-2 text-sm font-bold tracking-tight">
+          <span class="text-lg">❄️</span>
+          <span>Ice CMS</span>
+        </Link>
 
-        <div class="ml-auto flex items-center gap-2"></div>
-
-        <div class="order-3 flex w-full flex-wrap items-center gap-x-4 gap-y-1 pb-1 text-sm font-semibold sm:order-2 sm:w-auto sm:flex-nowrap sm:pb-0">
+        {/* Nav */}
+        <nav class="ml-4 flex items-center gap-1">
           <Link
             to="/"
-            class="nav-link"
-            activeProps={{ class: 'nav-link is-active' }}
+            class="rounded-lg px-3 py-1.5 text-sm font-medium opacity-60 transition hover:opacity-100 hover:bg-base-content/5"
+            activeProps={{ class: 'rounded-lg px-3 py-1.5 text-sm font-medium bg-base-content/10 opacity-100' }}
           >
-            Home
+            Pages
           </Link>
-          <Link
-            to="/about"
-            class="nav-link"
-            activeProps={{ class: 'nav-link is-active' }}
-          >
-            About
-          </Link>
-          <a
-            href="https://tanstack.com/start/latest/docs/framework/solid/overview"
-            target="_blank"
-            rel="noreferrer"
-            class="nav-link"
-          >
-            Docs
-          </a>
-        </div>
-      </nav>
+        </nav>
+
+        {/* Spacer */}
+        <div class="flex-1" />
+
+        {/* Theme toggle */}
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm btn-circle"
+          onClick={toggleTheme}
+          title={`Switch to ${theme() === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme() === 'dark' ? (
+            /* Sun */
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+          ) : (
+            /* Moon */
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+          )}
+        </button>
+      </div>
     </header>
   )
 }

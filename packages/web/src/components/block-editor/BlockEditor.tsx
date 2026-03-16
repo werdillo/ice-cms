@@ -1,4 +1,4 @@
-import { type Component, createSignal, createMemo, For } from 'solid-js'
+import { type Component, createSignal, createMemo, For, createEffect } from 'solid-js'
 import type { BlockMeta } from '@ice-cms/schemas'
 import { LANGS, type Lang } from '@ice-cms/schemas'
 import { schemaToFields } from '../../lib/schema-to-fields'
@@ -6,7 +6,6 @@ import SchemaForm from './SchemaForm'
 import type { z } from 'zod'
 
 // ------------------------------------------------------------------ Modal ---
-// Rendered once at app level, never remounts. Controlled via open/close fns.
 
 type BlockModalProps = {
   meta: BlockMeta
@@ -19,18 +18,37 @@ type BlockModalProps = {
 export const BlockModal: Component<BlockModalProps> = (props) => {
   const [activeLang, setActiveLang] = createSignal<Lang>('lv')
 
+  // Local copy — edits happen here, parent only gets updated on Save
+  const [localData, setLocalData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>({})
+
+  // When modal opens — copy current props.data into local
+  createEffect(() => {
+    if (props.open) {
+      setLocalData(structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>)
+    }
+  })
+
   const fields = createMemo(() =>
     schemaToFields(props.meta.schema as z.ZodTypeAny)
   )
 
   const currentData = createMemo(
     () =>
-      (props.data[activeLang()] as Record<string, unknown>) ??
+      (localData()[activeLang()] as Record<string, unknown>) ??
       (props.meta.defaultData() as Record<string, unknown>)
   )
 
   const handleChange = (updated: Record<string, unknown>) => {
-    props.onChange({ ...props.data, [activeLang()]: updated })
+    setLocalData((prev) => ({ ...prev, [activeLang()]: updated }))
+  }
+
+  const handleSave = () => {
+    props.onChange(localData())
+    props.onClose()
+  }
+
+  const handleCancel = () => {
+    props.onClose()
   }
 
   const stopProp = (e: MouseEvent) => e.stopPropagation()
@@ -44,7 +62,7 @@ export const BlockModal: Component<BlockModalProps> = (props) => {
           opacity: props.open ? '1' : '0',
           'pointer-events': props.open ? 'auto' : 'none',
         }}
-        onClick={props.onClose}
+        onClick={handleCancel}
       />
 
       {/* Box */}
@@ -72,7 +90,7 @@ export const BlockModal: Component<BlockModalProps> = (props) => {
           <button
             type="button"
             class="btn btn-sm btn-ghost btn-circle"
-            onClick={props.onClose}
+            onClick={handleCancel}
           >
             ✕
           </button>
@@ -108,10 +126,10 @@ export const BlockModal: Component<BlockModalProps> = (props) => {
 
         {/* Footer */}
         <div class="flex justify-end gap-2 px-5 py-4 border-t border-base-content/10 shrink-0">
-          <button type="button" class="btn btn-sm btn-ghost" onClick={props.onClose}>
+          <button type="button" class="btn btn-sm btn-ghost" onClick={handleCancel}>
             Cancel
           </button>
-          <button type="button" class="btn btn-sm btn-primary" onClick={props.onClose}>
+          <button type="button" class="btn btn-sm btn-primary" onClick={handleSave}>
             Save
           </button>
         </div>
