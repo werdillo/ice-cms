@@ -1,86 +1,63 @@
 import { createFileRoute } from '@tanstack/solid-router'
+import { createSignal } from 'solid-js'
+import BlockEditor from '../components/block-editor/BlockEditor'
+import { faqSectionMeta } from '@ice-cms/schemas'
+import type { Lang } from '@ice-cms/schemas'
 
 export const Route = createFileRoute('/')({ component: App })
 
 function App() {
+  const [data, setData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>({
+    lv: faqSectionMeta.defaultData() as unknown as Record<string, unknown>,
+    en: faqSectionMeta.defaultData() as unknown as Record<string, unknown>,
+    ru: faqSectionMeta.defaultData() as unknown as Record<string, unknown>,
+  })
+  const [enabled, setEnabled] = createSignal(true)
+
   return (
-    <main class="page-wrap px-4 pb-8 pt-14">
-      <section class="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
-        <div class="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
-        <div class="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-        <p class="island-kicker mb-3">TanStack Start Base Template</p>
-        <h1 class="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-          Start simple, ship quickly.
-        </h1>
-        <p class="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-          This base starter intentionally keeps things light: two routes, clean
-          structure, and the essentials you need to build from scratch.
-        </p>
-        <div class="flex flex-wrap gap-3">
-          <a
-            href="/about"
-            class="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
-          >
-            About This Starter
-          </a>
-          <a
-            href="https://tanstack.com/router"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
-          >
-            Router Guide
-          </a>
+    <div class="min-h-screen bg-base-200 p-8">
+      <div class="max-w-3xl mx-auto flex flex-col gap-6">
+
+        {/* Page header */}
+        <div>
+          <h1 class="text-2xl font-bold">Page Editor</h1>
+          <p class="text-sm opacity-50 mt-1">
+            Click <span class="font-semibold">Edit</span> to open the block editor. Switch languages with the tabs inside.
+          </p>
         </div>
-      </section>
 
-      <section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          [
-            'Type-Safe Routing',
-            'Routes and links stay in sync across every page.',
-          ],
-          [
-            'Server Functions',
-            'Call server code from your UI without creating API boilerplate.',
-          ],
-          [
-            'Streaming by Default',
-            'Ship progressively rendered responses for faster experiences.',
-          ],
-          [
-            'Tailwind Native',
-            'Design quickly with utility-first styling and reusable tokens.',
-          ],
-        ].map(([title, desc], index) => (
-          <article
-            class="island-shell feature-card rise-in rounded-2xl p-5"
-            style={{ 'animation-delay': `${index * 90 + 80}ms` }}
-          >
-            <h2 class="mb-2 text-base font-semibold text-[var(--sea-ink)]">
-              {title}
-            </h2>
-            <p class="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-          </article>
-        ))}
-      </section>
+        {/* Blocks list */}
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
+              Blocks
+            </span>
+          </div>
 
-      <section class="island-shell mt-8 rounded-2xl p-6">
-        <p class="island-kicker mb-2">Quick Start</p>
-        <ul class="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
-          <li>
-            Edit <code>src/routes/index.tsx</code> to customize the home page.
-          </li>
-          <li>
-            Update <code>src/components/Header.tsx</code> for navigation and
-            product links.
-          </li>
-          <li>
-            Add routes in <code>src/routes</code> and tweak visual tokens in{' '}
-            <code>src/styles.css</code>.
-          </li>
-        </ul>
-      </section>
-    </main>
+          <BlockEditor
+            meta={faqSectionMeta}
+            data={data()}
+            enabled={enabled()}
+            order={0}
+            onChange={setData}
+            onToggle={setEnabled}
+          />
+        </div>
+
+        {/* JSON preview */}
+        <div class="collapse collapse-arrow border border-base-content/10 bg-base-100 rounded-box">
+          <input type="checkbox" />
+          <div class="collapse-title text-sm font-semibold opacity-60">
+            JSON Preview
+          </div>
+          <div class="collapse-content">
+            <pre class="text-xs overflow-x-auto bg-base-200 rounded-box p-4">
+              {JSON.stringify({ enabled: enabled(), data: data() }, null, 2)}
+            </pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
   )
 }

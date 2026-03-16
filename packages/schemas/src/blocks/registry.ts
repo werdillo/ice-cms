@@ -1,4 +1,4 @@
-import { solutionSectionMeta, solutionSectionSchema } from './solution-section'
+import { solutionSectionMeta } from './solution-section'
 import { faqSectionMeta } from './faq-section'
 import { contactSectionMeta } from './contact-section'
 import { z } from 'zod'
