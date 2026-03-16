@@ -3,7 +3,7 @@ import { createSignal } from 'solid-js'
 import SortableBlockList, {
   type BlockState,
 } from '../components/block-editor/SortableBlockList'
-import { faqSectionMeta, solutionSectionMeta, bookCallMeta, benefitsSectionMeta, featureSectionMeta } from '@ice-cms/schemas'
+import { faqSectionMeta, solutionSectionMeta, bookCallMeta, benefitsSectionMeta, featureSectionMeta, gallerySectionMeta, mainSectionMeta } from '@ice-cms/schemas'
 
 export const Route = createFileRoute('/')({ component: App })
 
@@ -30,6 +30,8 @@ function App() {
     makeBlock(bookCallMeta, 2),
     makeBlock(benefitsSectionMeta, 3),
     makeBlock(featureSectionMeta, 4),
+    makeBlock(gallerySectionMeta, 5),
+    makeBlock(mainSectionMeta, 6),
   ])
 
   return (
