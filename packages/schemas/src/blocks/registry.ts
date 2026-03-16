@@ -1,6 +1,9 @@
 import { solutionSectionMeta } from './solution-section'
 import { faqSectionMeta } from './faq-section'
 import { contactSectionMeta } from './contact-section'
+import { bookCallMeta } from './book-call'
+import { benefitsSectionMeta } from './benefits-section'
+import { featureSectionMeta } from './feature-section'
 import { z } from 'zod'
 import type { Lang } from '../base'
 
@@ -20,6 +23,9 @@ export const blockRegistry = [
   solutionSectionMeta,
   faqSectionMeta,
   contactSectionMeta,
+  bookCallMeta,
+  benefitsSectionMeta,
+  featureSectionMeta,
 ] as const satisfies readonly BlockMeta[]
 
 // --- Lookup by type ---

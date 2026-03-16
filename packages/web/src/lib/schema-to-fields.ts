@@ -8,6 +8,7 @@ export type FieldType =
   | 'select'
   | 'object'
   | 'array'
+  | 'tuple'
 
 export type FieldDescriptor =
   | StringField
@@ -16,6 +17,7 @@ export type FieldDescriptor =
   | SelectField
   | ObjectField
   | ArrayField
+  | TupleField
 
 export type StringField = {
   kind: 'string'
@@ -59,6 +61,15 @@ export type ArrayField = {
   label: string
   itemFields: FieldDescriptor[]
   defaultItem: Record<string, unknown>
+}
+
+export type TupleField = {
+  kind: 'tuple'
+  key: string
+  label: string
+  itemFields: FieldDescriptor[]  // fields of each item (all items share same shape)
+  length: number                 // fixed length
+  defaultItems: Record<string, unknown>[]
 }
 
 // --- Label helper ---
@@ -106,6 +117,7 @@ export function buildDefaultItem(
     else if (field.kind === 'object')
       obj[field.key] = buildDefaultItem(field.fields)
     else if (field.kind === 'array') obj[field.key] = []
+    else if (field.kind === 'tuple') obj[field.key] = field.defaultItems
   }
   return obj
 }
@@ -181,6 +193,24 @@ export function schemaToFields(
         itemFields,
         defaultItem: buildDefaultItem(itemFields),
       } satisfies ArrayField
+    }
+
+    // --- Tuple (fixed-length array) ---
+    if (field instanceof z.ZodTuple) {
+      const items = field._def.items as z.ZodTypeAny[]
+      // All items share the same shape — use first item for field descriptors
+      const itemFields = items.length > 0 ? schemaToFields(items[0], fullKey) : []
+      const defaultItem = buildDefaultItem(itemFields)
+      return {
+        kind: 'tuple',
+        key,
+        label,
+        itemFields,
+        length: items.length,
+        defaultItems: Array.from({ length: items.length }, () =>
+          structuredClone(defaultItem)
+        ),
+      } satisfies TupleField
     }
 
     // --- Object ---
