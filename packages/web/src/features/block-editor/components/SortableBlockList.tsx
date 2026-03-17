@@ -17,15 +17,9 @@ import {
   extractClosestEdge,
   type Edge,
 } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
-import BlockEditor, { BlockModal } from './BlockEditor'
-import type { Lang, BlockMeta } from '@ice-cms/schemas'
-
-export type BlockState = {
-  id: string
-  meta: BlockMeta
-  data: Partial<Record<Lang, Record<string, unknown>>>
-  enabled: boolean
-}
+import BlockCard from './BlockCard'
+import BlockModal from './BlockModal'
+import type { BlockState } from '../types'
 
 type SortableBlockListProps = {
   blocks: BlockState[]
@@ -192,7 +186,7 @@ const DraggableBlock: Component<DraggableBlockProps> = (props) => {
       )}
 
       <div class={`transition-opacity duration-150 ${isDragging() ? 'opacity-30' : 'opacity-100'}`}>
-        <BlockEditor
+        <BlockCard
           meta={props.block.meta}
           enabled={props.block.enabled}
           onOpenModal={props.onOpenModal}

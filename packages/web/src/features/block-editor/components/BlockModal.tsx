@@ -1,14 +1,12 @@
 import { type Component, createSignal, createMemo, For, createEffect } from 'solid-js'
 import type { BlockMeta } from '@ice-cms/schemas'
 import { LANGS, type Lang } from '@ice-cms/schemas'
-import { schemaToFields } from '../../lib/schema-to-fields'
-import SchemaForm from './SchemaForm'
 import type { z } from 'zod'
-
-// ------------------------------------------------------------------ Modal ---
+import { schemaToFields } from '../services/schema-to-fields'
+import SchemaForm from './SchemaForm'
 
 type BlockModalProps = {
-  meta: BlockMeta
+  meta: BlockMeta | undefined
   data: Partial<Record<Lang, Record<string, unknown>>>
   open: boolean
   onClose: () => void
@@ -29,13 +27,14 @@ export const BlockModal: Component<BlockModalProps> = (props) => {
   })
 
   const fields = createMemo(() =>
-    schemaToFields(props.meta.schema as z.ZodTypeAny)
+    props.meta ? schemaToFields(props.meta.schema as z.ZodTypeAny) : []
   )
 
   const currentData = createMemo(
     () =>
       (localData()[activeLang()] as Record<string, unknown>) ??
-      (props.meta.defaultData() as Record<string, unknown>)
+      (props.meta?.defaultData() as Record<string, unknown> | undefined) ??
+      {}
   )
 
   const handleChange = (updated: Record<string, unknown>) => {
@@ -84,8 +83,8 @@ export const BlockModal: Component<BlockModalProps> = (props) => {
         {/* Header */}
         <div class="flex items-center justify-between px-5 py-4 border-b border-base-content/10 shrink-0">
           <div>
-            <h3 class="font-bold text-base">{props.meta.label}</h3>
-            <p class="text-xs opacity-40 font-mono">{props.meta.type}</p>
+            <h3 class="font-bold text-base">{props.meta?.label}</h3>
+            <p class="text-xs opacity-40 font-mono">{props.meta?.type}</p>
           </div>
           <button
             type="button"
@@ -138,65 +137,4 @@ export const BlockModal: Component<BlockModalProps> = (props) => {
   )
 }
 
-// ------------------------------------------------------------------- Card ---
-
-type BlockEditorProps = {
-  meta: BlockMeta
-  enabled: boolean
-  onOpenModal: () => void
-  onToggle: (enabled: boolean) => void
-  dragHandleRef?: (el: HTMLButtonElement) => void
-}
-
-const BlockEditor: Component<BlockEditorProps> = (props) => {
-  return (
-    <div
-      class={`card card-border bg-base-100 transition-opacity ${
-        props.enabled ? 'opacity-100' : 'opacity-50'
-      }`}
-    >
-      <div class="card-body flex-row items-center gap-4 p-4">
-        {/* Drag handle */}
-        <button
-          type="button"
-          ref={props.dragHandleRef}
-          class="cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 select-none text-xl touch-none bg-transparent border-none p-0 leading-none transition-colors"
-          aria-label="Drag to reorder"
-        >
-          ⠿
-        </button>
-
-        {/* Info */}
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2">
-            <span class="badge badge-ghost badge-sm font-mono text-xs">
-              {props.meta.type}
-            </span>
-            <h3 class="font-semibold text-sm truncate">{props.meta.label}</h3>
-          </div>
-          <p class="text-xs opacity-40 mt-0.5 truncate">{props.meta.description}</p>
-        </div>
-
-        {/* Actions */}
-        <div class="flex items-center gap-3 shrink-0">
-          <input
-            type="checkbox"
-            class="toggle toggle-sm toggle-primary"
-            checked={props.enabled}
-            onChange={(e) => props.onToggle(e.currentTarget.checked)}
-            title={props.enabled ? 'Disable block' : 'Enable block'}
-          />
-          <button
-            type="button"
-            class="btn btn-sm btn-outline"
-            onClick={props.onOpenModal}
-          >
-            Edit
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default BlockEditor
+export default BlockModal

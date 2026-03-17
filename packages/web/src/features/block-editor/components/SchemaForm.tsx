@@ -8,7 +8,7 @@ import type {
   ObjectField,
   ArrayField,
   TupleField,
-} from '../../lib/schema-to-fields'
+} from '../services/schema-to-fields'
 
 
 // --- Path helpers ---

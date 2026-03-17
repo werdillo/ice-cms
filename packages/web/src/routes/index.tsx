@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
 import SortableBlockList, {
   type BlockState,
-} from '../components/block-editor/SortableBlockList'
+} from '../features/block-editor'
 import { faqSectionMeta, solutionSectionMeta, bookCallMeta, benefitsSectionMeta, featureSectionMeta, gallerySectionMeta, mainSectionMeta, contactSectionMeta, servicesSectionMeta } from '@ice-cms/schemas'
 
 export const Route = createFileRoute('/')({ component: App })
