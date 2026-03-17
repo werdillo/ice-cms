@@ -4,6 +4,8 @@ import SortableBlockList, {
   type BlockState,
 } from '../features/block-editor'
 import { faqSectionMeta, solutionSectionMeta, bookCallMeta, benefitsSectionMeta, featureSectionMeta, gallerySectionMeta, mainSectionMeta, contactSectionMeta, servicesSectionMeta } from '@ice-cms/schemas'
+import { MetaEditor } from '../features/meta-editor/components'
+import { type PageMeta } from '../features/meta-editor'
 
 export const Route = createFileRoute('/')({ component: App })
 
@@ -36,9 +38,19 @@ function App() {
     makeBlock(faqSectionMeta, 8),
   ])
 
+  const [metaData, setMetaData] = createSignal<Partial<PageMeta>>({
+    title: 'Page Title',
+    description: 'Page description',
+    keywords: 'keyword',
+  })
+
+  const handleMetaChange = (newMeta: PageMeta) => {
+    setMetaData(newMeta)
+  }
+
   return (
     <div class="min-h-screen bg-base-200 p-8">
-      <div class="max-w-3xl mx-auto flex flex-col gap-6">
+      <div class="max-w-5xl mx-auto flex flex-col gap-6">
 
         {/* Page header */}
         <div>
@@ -48,7 +60,15 @@ function App() {
             <span class="font-semibold">Edit</span> to open the editor.
           </p>
         </div>
-
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
+            Meta
+          </span>
+          <MetaEditor
+            initialData={metaData()}
+            onChange={handleMetaChange}
+          />
+        </div>
         {/* Blocks */}
         <div class="flex flex-col gap-2">
           <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
@@ -65,15 +85,14 @@ function App() {
           </div>
           <div class="collapse-content">
             <pre class="text-xs overflow-x-auto bg-base-200 rounded-box p-4">
-              {JSON.stringify(
-                blocks().map((b) => ({
+              {JSON.stringify({
+                meta: metaData(),
+                blocks: blocks().map((b) => ({
                   type: b.meta.type,
                   enabled: b.enabled,
                   data: b.data,
                 })),
-                null,
-                2
-              )}
+              }, null, 2)}
             </pre>
           </div>
         </div>
