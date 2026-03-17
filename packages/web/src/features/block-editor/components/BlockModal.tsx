@@ -1,9 +1,8 @@
-import { type Component, createSignal, createMemo, For, createEffect } from 'solid-js'
+import { type Component, For } from 'solid-js'
 import type { BlockMeta } from '@ice-cms/schemas'
 import { LANGS, type Lang } from '@ice-cms/schemas'
-import type { z } from 'zod'
-import { schemaToFields } from '../services/schema-to-fields'
 import SchemaForm from './SchemaForm'
+import { useBlockModal } from '../hooks'
 
 type BlockModalProps = {
   meta: BlockMeta | undefined
@@ -14,41 +13,15 @@ type BlockModalProps = {
 }
 
 export const BlockModal: Component<BlockModalProps> = (props) => {
-  const [activeLang, setActiveLang] = createSignal<Lang>('lv')
-
-  // Local copy — edits happen here, parent only gets updated on Save
-  const [localData, setLocalData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>({})
-
-  // When modal opens — copy current props.data into local
-  createEffect(() => {
-    if (props.open) {
-      setLocalData(structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>)
-    }
-  })
-
-  const fields = createMemo(() =>
-    props.meta ? schemaToFields(props.meta.schema as z.ZodTypeAny) : []
-  )
-
-  const currentData = createMemo(
-    () =>
-      (localData()[activeLang()] as Record<string, unknown>) ??
-      (props.meta?.defaultData() as Record<string, unknown> | undefined) ??
-      {}
-  )
-
-  const handleChange = (updated: Record<string, unknown>) => {
-    setLocalData((prev) => ({ ...prev, [activeLang()]: updated }))
-  }
-
-  const handleSave = () => {
-    props.onChange(localData())
-    props.onClose()
-  }
-
-  const handleCancel = () => {
-    props.onClose()
-  }
+  const {
+    activeLang,
+    setActiveLang,
+    fields,
+    currentData,
+    handleChange,
+    handleSave,
+    handleCancel,
+  } = useBlockModal(props)
 
   const stopProp = (e: MouseEvent) => e.stopPropagation()
 

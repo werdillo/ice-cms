@@ -4,3 +4,4 @@
 export { useSortableList } from './useSortableList'
 export { useModalState } from './useModalState'
 export { useDraggableBlock } from './useDraggableBlock'
+export { useBlockModal } from './useBlockModal'
