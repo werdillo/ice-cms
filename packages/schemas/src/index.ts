@@ -1,6 +1,6 @@
 export * from './base'
 export * from './meta'
-export * from './layout'
+export * from './layout/index'
 export * from './blocks/solution-section'
 export * from './blocks/faq-section'
 export * from './blocks/contact-section'
