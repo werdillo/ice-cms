@@ -3,52 +3,27 @@ import { zValidator } from '@hono/zod-validator'
 import type { z } from 'zod'
 import { publishContentSchema } from '../schemas/publish.schema'
 import { publishPageDataToGitHub } from '../services/github-content.service'
+import {
+  getGithubContentConfig,
+  type ContentEnv,
+} from '../services/content.config.service'
 
-export type ContentPublishEnv = {
-  GITHUB_TOKEN: string
-  GITHUB_OWNER: string
-  GITHUB_REPO: string
-  GITHUB_BRANCH?: string
-  FRONTEND_CONTENT_PATH?: string
-}
+export type PublishContentRequest = z.infer<typeof publishContentSchema>
 
-export type PublishRequest = z.infer<typeof publishContentSchema>
+const publishContentRoute = new Hono<{ Bindings: ContentEnv }>()
 
-const publishRoute = new Hono<{ Bindings: ContentPublishEnv }>()
-
-publishRoute.post(
+publishContentRoute.post(
   '/publish',
   zValidator('json', publishContentSchema),
   async (c) => {
     const payload = c.req.valid('json')
 
-    const {
-      GITHUB_TOKEN,
-      GITHUB_OWNER,
-      GITHUB_REPO,
-      GITHUB_BRANCH,
-      FRONTEND_CONTENT_PATH,
-    } = c.env
-
-    if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
-      return c.json(
-        {
-          success: false,
-          error:
-            'Missing GitHub configuration. Required: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO',
-        },
-        500
-      )
-    }
-
     try {
+      const config = getGithubContentConfig(c.env)
+
       const result = await publishPageDataToGitHub(
         {
-          token: GITHUB_TOKEN,
-          owner: GITHUB_OWNER,
-          repo: GITHUB_REPO,
-          branch: GITHUB_BRANCH ?? 'main',
-          contentPath: FRONTEND_CONTENT_PATH ?? 'src/content/pages',
+          ...config,
           commitMessage: payload.commitMessage,
         },
         {
@@ -77,5 +52,5 @@ publishRoute.post(
   }
 )
 
-export { publishRoute }
-export default publishRoute
+export { publishContentRoute }
+export default publishContentRoute

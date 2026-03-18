@@ -12,6 +12,10 @@ export type GithubContentCommitConfig = {
 export type GithubContentFileResponse = {
   sha: string
   content?: string
+  encoding?: string
+  path?: string
+  name?: string
+  download_url?: string | null
 }
 
 export type GithubPublishPageInput = {
@@ -28,6 +32,18 @@ export type GithubPublishPageResult = {
   }
 }
 
+export type GithubReadPageInput = {
+  slug: string
+}
+
+export type GithubReadPageResult = {
+  success: true
+  slug: string
+  path: string
+  sha: string
+  data: PageData
+}
+
 function toBase64(value: string): string {
   const bytes = new TextEncoder().encode(value)
   let binary = ''
@@ -37,6 +53,14 @@ function toBase64(value: string): string {
   }
 
   return btoa(binary)
+}
+
+function fromBase64(value: string): string {
+  const normalized = value.replace(/\n/g, '')
+  const binary = atob(normalized)
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+
+  return new TextDecoder().decode(bytes)
 }
 
 function buildGitHubApiUrl(config: GithubContentCommitConfig, path: string): string {
@@ -55,6 +79,15 @@ function buildTargetPath(config: GithubContentCommitConfig, slug: string): strin
   return `${normalizedBase}/${normalizedSlug}.json`
 }
 
+function buildGitHubHeaders(token: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'ice-cms-api',
+    'X-GitHub-Api-Version': '2022-11-28',
+  }
+}
+
 async function getExistingFile(
   config: GithubContentCommitConfig,
   path: string
@@ -63,12 +96,7 @@ async function getExistingFile(
     `${buildGitHubApiUrl(config, path)}?ref=${encodeURIComponent(config.branch)}`,
     {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${config.token}`,
-        Accept: 'application/vnd.github+json',
-        'User-Agent': 'ice-cms-api',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
+      headers: buildGitHubHeaders(config.token),
     }
   )
 
@@ -86,6 +114,49 @@ async function getExistingFile(
   return (await response.json()) as GithubContentFileResponse
 }
 
+function parsePageDataFile(file: GithubContentFileResponse, slug: string): PageData {
+  if (!file.content) {
+    throw new Error(`GitHub file for slug "${slug}" does not contain content`)
+  }
+
+  if (file.encoding && file.encoding !== 'base64') {
+    throw new Error(
+      `Unsupported GitHub file encoding for slug "${slug}": ${file.encoding}`
+    )
+  }
+
+  const decoded = fromBase64(file.content)
+
+  try {
+    return JSON.parse(decoded) as PageData
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Unknown JSON parse error'
+
+    throw new Error(`Failed to parse page content for slug "${slug}": ${message}`)
+  }
+}
+
+export async function readPageDataFromGitHub(
+  config: GithubContentCommitConfig,
+  input: GithubReadPageInput
+): Promise<GithubReadPageResult | null> {
+  const path = buildTargetPath(config, input.slug)
+  const file = await getExistingFile(config, path)
+
+  if (!file) {
+    return null
+  }
+
+  return {
+    success: true,
+    slug: input.slug,
+    path,
+    sha: file.sha,
+    data: parsePageDataFile(file, input.slug),
+  }
+}
+
 export async function publishPageDataToGitHub(
   config: GithubContentCommitConfig,
   input: GithubPublishPageInput
@@ -99,11 +170,8 @@ export async function publishPageDataToGitHub(
   const response = await fetch(buildGitHubApiUrl(config, path), {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${config.token}`,
-      Accept: 'application/vnd.github+json',
+      ...buildGitHubHeaders(config.token),
       'Content-Type': 'application/json',
-      'User-Agent': 'ice-cms-api',
-      'X-GitHub-Api-Version': '2022-11-28',
     },
     body: JSON.stringify({
       message: commitMessage,

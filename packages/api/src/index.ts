@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { createDb } from './db'
-import { publishRoute } from './feature/content-publish'
+import { contentApp } from './feature/content'
 
 export type Env = {
   DB: D1Database
@@ -51,8 +51,8 @@ app.post('/api/publish', async (c) => {
   return c.json({ success: true, message: 'Deploy triggered' })
 })
 
-// --- Content publish ---
-app.route('/api/content', publishRoute)
+// --- Content ---
+app.route('/api/content', contentApp)
 
 // --- Pages ---
 app.get('/api/pages', async (c) => {
