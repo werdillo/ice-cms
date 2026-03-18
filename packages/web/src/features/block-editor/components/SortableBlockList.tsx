@@ -59,7 +59,7 @@ const DraggableBlock: Component<DraggableBlockProps> = (props) => {
   )
 }
 
-const SortableBlockList: Component<SortableBlockListProps> = (props) => {
+export const SortableBlockList: Component<SortableBlockListProps> = (props) => {
   const { dragState, setDragState } = useSortableList(() => props.blocks, props.onChange)
   const {
     activeModalId,

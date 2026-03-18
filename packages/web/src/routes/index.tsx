@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
-import SortableBlockList, {
+import {SortableBlockList,
   type BlockState,
 } from '../features/block-editor'
 import { faqSectionMeta, solutionSectionMeta, bookCallMeta, benefitsSectionMeta, featureSectionMeta, gallerySectionMeta, mainSectionMeta, contactSectionMeta, servicesSectionMeta } from '@ice-cms/schemas'

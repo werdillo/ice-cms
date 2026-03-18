@@ -1,3 +1,3 @@
-export { default as SortableBlockList } from './SortableBlockList'
-export { default as BlockCard } from './BlockCard'
-export { default as BlockModal } from './BlockModal'
+export * from './SortableBlockList'
+export * from './BlockCard'
+export * from './BlockModal'

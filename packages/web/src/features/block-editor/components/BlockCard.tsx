@@ -9,7 +9,7 @@ type BlockCardProps = {
   dragHandleRef?: (el: HTMLButtonElement) => void
 }
 
-const BlockCard: Component<BlockCardProps> = (props) => {
+export const BlockCard: Component<BlockCardProps> = (props) => {
   return (
     <div
       class={`card card-border bg-base-100 transition-opacity ${

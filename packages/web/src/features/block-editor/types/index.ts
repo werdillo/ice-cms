@@ -1,12 +1,2 @@
-export type { BlockState } from './block.types'
-export type {
-  FieldType,
-  FieldDescriptor,
-  StringField,
-  NumberField,
-  BooleanField,
-  SelectField,
-  ObjectField,
-  ArrayField,
-  TupleField,
-} from './field.types.ts'
+export * from './block.types'
+export * from './field.types'
