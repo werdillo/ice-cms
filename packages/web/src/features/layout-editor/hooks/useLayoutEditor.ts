@@ -1,59 +1,113 @@
 import { createSignal, createMemo } from 'solid-js'
 import { type Lang } from '@ice-cms/schemas'
 import type { PageLayout } from '../types'
-import type { LayoutByLang } from '../services/layout-editor.validation'
-import { isLayoutByLangValid } from '../services/layout-editor.validation'
+
+export type LayoutSectionsByLang = {
+  header: Partial<Record<Lang, PageLayout['header']>>
+  footer: Partial<Record<Lang, PageLayout['footer']>>
+  sidebar: Partial<Record<Lang, PageLayout['sidebar']>>
+}
 
 type UseLayoutEditorProps = {
-  initialData: LayoutByLang
-  onChange: (data: Partial<Record<Lang, PageLayout>>) => void
+  initialData: LayoutSectionsByLang
+  onChange: (data: LayoutSectionsByLang) => void
+}
+
+function isCompleteObject(value: unknown): boolean {
+  return !!value && typeof value === 'object'
+}
+
+function isLayoutValid(data: LayoutSectionsByLang): boolean {
+  return (['lv', 'en', 'ru'] as Lang[]).every((lang) => {
+    const header = data.header[lang]
+    const footer = data.footer[lang]
+    const sidebar = data.sidebar[lang]
+
+    return !!(
+      header?.lang &&
+      header?.buttonText &&
+      header?.buttonHref &&
+      footer?.ariaLabel &&
+      footer?.logo?.href &&
+      footer?.logo?.ariaLabel &&
+      footer?.mainNavigation?.ariaLabel &&
+      footer?.newsletter?.emailInputId &&
+      footer?.newsletter?.emailPlaceholder &&
+      footer?.newsletter?.buttonText &&
+      footer?.newsletter?.ariaLabel &&
+      footer?.copyright?.siteName &&
+      footer?.copyright?.siteUrl &&
+      footer?.legalLinks?.ariaLabel &&
+      sidebar?.ariaLabel &&
+      Array.isArray(sidebar?.links)
+    )
+  })
 }
 
 export function useLayoutEditor(props: UseLayoutEditorProps) {
   const [activeLang, setActiveLang] = createSignal<Lang>('lv')
-  const [localData, setLocalData] = createSignal<LayoutByLang>({
-    ...props.initialData,
+  const [localData, setLocalData] = createSignal<LayoutSectionsByLang>({
+    header: { ...props.initialData.header },
+    footer: { ...props.initialData.footer },
+    sidebar: { ...props.initialData.sidebar },
   })
 
-  const currentData = createMemo<Partial<PageLayout>>(
-    () => localData()[activeLang()] ?? {}
-  )
+  const currentData = createMemo<Partial<PageLayout>>(() => ({
+    header: localData().header[activeLang()],
+    footer: localData().footer[activeLang()],
+    sidebar: localData().sidebar[activeLang()],
+  }))
 
-  const isValid = createMemo(() => isLayoutByLangValid(localData()))
+  const isValid = createMemo(() => isLayoutValid(localData()))
 
-  const handleSectionChange = <K extends keyof PageLayout>(
-    section: K,
-    value: PageLayout[K]
-  ) => {
+  const handleHeaderChange = (updated: Record<string, unknown>) => {
+    if (!isCompleteObject(updated)) return
+
     setLocalData((prev) => ({
       ...prev,
-      [activeLang()]: {
-        ...(prev[activeLang()] ?? {}),
-        [section]: value,
+      header: {
+        ...prev.header,
+        [activeLang()]: updated as PageLayout['header'],
       },
     }))
   }
 
-  const handleHeaderChange = (updated: Record<string, unknown>) => {
-    handleSectionChange('header', updated as PageLayout['header'])
-  }
-
   const handleFooterChange = (updated: Record<string, unknown>) => {
-    handleSectionChange('footer', updated as PageLayout['footer'])
+    if (!isCompleteObject(updated)) return
+
+    setLocalData((prev) => ({
+      ...prev,
+      footer: {
+        ...prev.footer,
+        [activeLang()]: updated as PageLayout['footer'],
+      },
+    }))
   }
 
   const handleSidebarChange = (updated: Record<string, unknown>) => {
-    handleSectionChange('sidebar', updated as PageLayout['sidebar'])
+    if (!isCompleteObject(updated)) return
+
+    setLocalData((prev) => ({
+      ...prev,
+      sidebar: {
+        ...prev.sidebar,
+        [activeLang()]: updated as PageLayout['sidebar'],
+      },
+    }))
   }
 
   const handleSave = () => {
     if (isValid()) {
-      props.onChange(localData() as Partial<Record<Lang, PageLayout>>)
+      props.onChange(localData())
     }
   }
 
   const handleReset = () => {
-    setLocalData({ ...props.initialData })
+    setLocalData({
+      header: { ...props.initialData.header },
+      footer: { ...props.initialData.footer },
+      sidebar: { ...props.initialData.sidebar },
+    })
   }
 
   return {

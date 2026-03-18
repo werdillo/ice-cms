@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
+import { CollapsibleSection } from '../components/CollapsibleSection'
 import {
   SortableBlockList,
   type BlockState,
@@ -14,15 +15,17 @@ import {
   mainSectionMeta,
   contactSectionMeta,
   servicesSectionMeta,
-  type Lang,
   type PageData,
-  type Layout,
   type RegisteredBlockType,
 } from '@ice-cms/schemas'
-import { makeDefaultLayouts } from '../features/layout-editor/services'
+import {
+  makeDefaultLayouts,
+  toLayoutBySection,
+} from '../features/layout-editor/services'
 import { MetaEditor } from '../features/meta-editor/components'
 import { type PageMeta } from '../features/meta-editor'
 import { LayoutEditor } from '../features/layout-editor/components/LayoutEditor'
+import type { LayoutSectionsByLang } from '../features/layout-editor/hooks/useLayoutEditor'
 
 export const Route = createFileRoute('/')({ component: App })
 
@@ -41,8 +44,6 @@ function makeBlock(
     enabled: true,
   }
 }
-
-
 
 function App() {
   const [blocks, setBlocks] = createSignal<BlockState[]>([
@@ -63,19 +64,16 @@ function App() {
     keywords: 'keyword',
   })
 
-  const [layoutData, setLayoutData] = createSignal<Partial<Record<Lang, Layout>>>(
-    makeDefaultLayouts()
+  const [layoutData, setLayoutData] = createSignal<LayoutSectionsByLang>(
+    toLayoutBySection(makeDefaultLayouts())
   )
 
   const handleMetaChange = (newMeta: PageMeta) => {
     setMetaData(newMeta)
   }
 
-  const handleLayoutChange = (newLayout: Partial<Record<Lang, Layout>>) => {
-    setLayoutData((prev) => ({
-      ...prev,
-      ...newLayout,
-    }))
+  const handleLayoutChange = (newLayout: LayoutSectionsByLang) => {
+    setLayoutData(newLayout)
   }
 
   const pageData = (): PageData => ({
@@ -84,7 +82,7 @@ function App() {
       en: metaData() as Record<string, string>,
       ru: metaData() as Record<string, string>,
     },
-    layout: layoutData() as Partial<Record<Lang, Record<string, unknown>>>,
+    layout: layoutData() as PageData['layout'],
     blocks: blocks().map((block, index) => ({
       id: block.id,
       type: block.meta.type as RegisteredBlockType,
@@ -105,46 +103,32 @@ function App() {
           </p>
         </div>
 
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
-            Meta
-          </span>
+        <CollapsibleSection title="Meta">
           <MetaEditor
             initialData={metaData()}
             onChange={handleMetaChange}
           />
-        </div>
+        </CollapsibleSection>
 
-
-
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
-            Blocks
-          </span>
+        <CollapsibleSection title="Blocks" defaultOpen>
           <SortableBlockList blocks={blocks()} onChange={setBlocks} />
-        </div>
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
-            Layout
-          </span>
+        </CollapsibleSection>
 
+        <CollapsibleSection title="Layout">
           <LayoutEditor
             initialData={layoutData()}
             onChange={handleLayoutChange}
           />
-        </div>
+        </CollapsibleSection>
 
-        <div class="collapse collapse-arrow border border-base-content/10 bg-base-100 rounded-box">
-          <input type="checkbox" />
-          <div class="collapse-title text-sm font-semibold opacity-60">
-            JSON Preview
-          </div>
-          <div class="collapse-content">
-            <pre class="text-xs overflow-x-auto bg-base-200 rounded-box p-4">
-              {JSON.stringify(pageData(), null, 2)}
-            </pre>
-          </div>
-        </div>
+        <CollapsibleSection
+          title="JSON Preview"
+          titleClass="text-sm font-semibold opacity-60 normal-case tracking-normal"
+        >
+          <pre class="text-xs overflow-x-auto bg-base-200 rounded-box p-4">
+            {JSON.stringify(pageData(), null, 2)}
+          </pre>
+        </CollapsibleSection>
       </div>
     </div>
   )

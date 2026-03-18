@@ -19,5 +19,13 @@ export const layoutPropsSchema = z.object({
 
 export type LayoutProps = z.infer<typeof layoutPropsSchema>
 
-export const layoutByLangSchema = z.record(langSchema, layoutSchema)
-export type LayoutByLang = z.infer<typeof layoutByLangSchema>
+export const layoutSectionByLangSchema = <T extends z.ZodTypeAny>(schema: T) =>
+  z.record(langSchema, schema)
+
+export const layoutBySectionSchema = z.object({
+  header: layoutSectionByLangSchema(headerPropsSchema),
+  footer: layoutSectionByLangSchema(footerConfigSchema),
+  sidebar: layoutSectionByLangSchema(sidebarConfigSchema),
+})
+
+export type LayoutBySection = z.infer<typeof layoutBySectionSchema>

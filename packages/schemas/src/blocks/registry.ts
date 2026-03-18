@@ -9,6 +9,7 @@ import { mainSectionMeta } from './main-section'
 import { servicesSectionMeta } from './services-section'
 import { z } from 'zod'
 import type { Lang } from '../base'
+import type { Layout } from '../layout/config'
 
 // --- Block registry entry ---
 export type BlockMeta<T extends z.ZodTypeAny = z.ZodTypeAny> = {
@@ -53,6 +54,10 @@ export type Block<T = unknown> = {
 // --- Page shape (full JSON for Astro) ---
 export type PageData = {
   meta: Partial<Record<Lang, Record<string, string>>>
-  layout: Partial<Record<Lang, Record<string, unknown>>>
+  layout: {
+    header: Partial<Record<Lang, Layout['header']>>
+    footer: Partial<Record<Lang, Layout['footer']>>
+    sidebar: Partial<Record<Lang, Layout['sidebar']>>
+  }
   blocks: Block[]
 }

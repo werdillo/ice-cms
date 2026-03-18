@@ -24,7 +24,7 @@ export const MetaEditor: Component<MetaEditorProps> = (props) => {
   )
 
   return (
-    <div class="max-w-5xl p-6 bg-base-100 rounded-lg shadow-lg">
+    <div class="max-w-5xl p-6 bg-base-100 rounded-lg">
       <h2 class="text-2xl font-bold mb-6">Edit Page Metadata</h2>
 
       <div class="grid grid-cols-1 w-full md:grid-cols-2 gap-6">

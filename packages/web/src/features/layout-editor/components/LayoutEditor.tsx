@@ -3,12 +3,11 @@ import { LANGS } from '@ice-cms/schemas'
 import { SchemaForm } from '../../schema-form'
 import { useLayoutEditor } from '../hooks/useLayoutEditor'
 import { layoutEditorFields } from '../services/layout-editor.schemas'
-import type { PageLayout } from '../types'
-import type { LayoutByLang } from '../services/layout-editor.validation'
+import type { LayoutSectionsByLang } from '../hooks/useLayoutEditor'
 
 type LayoutEditorProps = {
-  initialData: LayoutByLang
-  onChange: (data: Partial<Record<(typeof LANGS)[number], PageLayout>>) => void
+  initialData: LayoutSectionsByLang
+  onChange: (data: LayoutSectionsByLang) => void
 }
 
 export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
@@ -25,7 +24,7 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
   } = useLayoutEditor(props)
 
   return (
-    <div class="max-w-6xl p-6 bg-base-100 rounded-lg shadow-lg">
+    <div class="max-w-6xl p-6 bg-base-100 rounded-lg">
       <div class="flex items-start justify-between gap-4 mb-6">
         <div>
           <h2 class="text-2xl font-bold">Edit Layout</h2>
