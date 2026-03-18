@@ -1,7 +1,7 @@
 import { type Component, For } from 'solid-js'
 import type { BlockMeta } from '@ice-cms/schemas'
 import { LANGS, type Lang } from '@ice-cms/schemas'
-import SchemaForm from './SchemaForm'
+import { SchemaForm } from '../../schema-form'
 import { useBlockModal } from '../hooks'
 
 type BlockModalProps = {

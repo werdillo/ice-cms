@@ -1,6 +1,5 @@
 import { type Component } from 'solid-js'
-import SchemaForm from '../../block-editor/components/SchemaForm'
-import { schemaToFields } from '../../block-editor/services/schema-to-fields'
+import { SchemaForm, schemaToFields } from '../../schema-form'
 import { metaSchema } from '@ice-cms/schemas'
 import { useMetaEditor } from '../hooks/useMetaEditor'
 import type { PageMeta } from '../types'

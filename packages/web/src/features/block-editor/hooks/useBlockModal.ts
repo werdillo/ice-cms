@@ -2,7 +2,7 @@ import { createSignal, createMemo, createEffect } from 'solid-js'
 import type { BlockMeta } from '@ice-cms/schemas'
 import { type Lang } from '@ice-cms/schemas'
 import type { z } from 'zod'
-import { schemaToFields } from '../services/schema-to-fields'
+import { schemaToFields } from '../../schema-form'
 
 type UseBlockModalProps = {
   meta: BlockMeta | undefined
