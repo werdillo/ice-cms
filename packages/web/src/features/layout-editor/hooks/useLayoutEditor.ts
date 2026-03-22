@@ -46,6 +46,7 @@ function isLayoutValid(data: LayoutSectionsByLang): boolean {
 
 export function useLayoutEditor(props: UseLayoutEditorProps) {
   const [activeLang, setActiveLang] = createSignal<Lang>('lv')
+  const [isDirty, setIsDirty] = createSignal(false)
   const [localData, setLocalData] = createSignal<LayoutSectionsByLang>({
     header: { ...props.initialData.header },
     footer: { ...props.initialData.footer },
@@ -62,7 +63,6 @@ export function useLayoutEditor(props: UseLayoutEditorProps) {
 
   const handleHeaderChange = (updated: Record<string, unknown>) => {
     if (!isCompleteObject(updated)) return
-
     setLocalData((prev) => ({
       ...prev,
       header: {
@@ -70,11 +70,11 @@ export function useLayoutEditor(props: UseLayoutEditorProps) {
         [activeLang()]: updated as PageLayout['header'],
       },
     }))
+    setIsDirty(true)
   }
 
   const handleFooterChange = (updated: Record<string, unknown>) => {
     if (!isCompleteObject(updated)) return
-
     setLocalData((prev) => ({
       ...prev,
       footer: {
@@ -82,11 +82,11 @@ export function useLayoutEditor(props: UseLayoutEditorProps) {
         [activeLang()]: updated as PageLayout['footer'],
       },
     }))
+    setIsDirty(true)
   }
 
   const handleSidebarChange = (updated: Record<string, unknown>) => {
     if (!isCompleteObject(updated)) return
-
     setLocalData((prev) => ({
       ...prev,
       sidebar: {
@@ -94,11 +94,13 @@ export function useLayoutEditor(props: UseLayoutEditorProps) {
         [activeLang()]: updated as PageLayout['sidebar'],
       },
     }))
+    setIsDirty(true)
   }
 
   const handleSave = () => {
     if (isValid()) {
       props.onChange(localData())
+      setIsDirty(false)
     }
   }
 
@@ -108,6 +110,7 @@ export function useLayoutEditor(props: UseLayoutEditorProps) {
       footer: { ...props.initialData.footer },
       sidebar: { ...props.initialData.sidebar },
     })
+    setIsDirty(false)
   }
 
   return {
@@ -116,6 +119,7 @@ export function useLayoutEditor(props: UseLayoutEditorProps) {
     localData,
     currentData,
     isValid,
+    isDirty,
     handleHeaderChange,
     handleFooterChange,
     handleSidebarChange,

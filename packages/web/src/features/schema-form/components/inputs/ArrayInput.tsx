@@ -1,15 +1,13 @@
-import { type Component, Index, createMemo } from 'solid-js'
+import { type Component, Index } from 'solid-js'
 import type { ArrayField } from '../../types'
 import { FieldRenderer } from '../FieldRenderer'
 
 const ArrayInput: Component<{
   field: ArrayField
-  value: Record<string, unknown>[]
+  value: () => Record<string, unknown>[]
   onChange: (v: Record<string, unknown>[]) => void
 }> = (props) => {
-  const items = createMemo(() =>
-    Array.isArray(props.value) ? props.value : []
-  )
+  const items = () => props.value()
 
   const addItem = () => {
     props.onChange([...items(), structuredClone(props.field.defaultItem)])
@@ -19,8 +17,20 @@ const ArrayInput: Component<{
     props.onChange(items().filter((_, i) => i !== index))
   }
 
-  const updateItem = (index: number, updated: Record<string, unknown>) => {
-    const next = items().map((item, i) => (i === index ? updated : item))
+  const updateItem = (index: number, key: string, value: unknown) => {
+    const next = items().map((item, i) => {
+      if (i !== index) return item
+      const copy = { ...item }
+      const parts = key.split('.')
+      let cur: Record<string, unknown> = copy
+      for (let p = 0; p < parts.length - 1; p++) {
+        const k = parts[p]
+        cur[k] = cur[k] && typeof cur[k] === 'object' ? { ...(cur[k] as Record<string, unknown>) } : {}
+        cur = cur[k] as Record<string, unknown>
+      }
+      cur[parts[parts.length - 1]] = value
+      return copy
+    })
     props.onChange(next)
   }
 
@@ -53,8 +63,8 @@ const ArrayInput: Component<{
                   {(subField) => (
                     <FieldRenderer
                       field={subField()}
-                      data={item()}
-                      onChange={(updated) => updateItem(index, updated)}
+                      store={item()}
+                      onFieldChange={(key, value) => updateItem(index, key, value)}
                     />
                   )}
                 </Index>

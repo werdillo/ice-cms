@@ -25,6 +25,7 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
     setActiveLang,
     localData,
     isValid,
+    isDirty,
     handleHeaderChange,
     handleFooterChange,
     handleSidebarChange,
@@ -115,7 +116,7 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
         <button
           type="button"
           class="btn btn-primary"
-          disabled={!isValid()}
+          disabled={!isDirty() || !isValid()}
           onClick={handleSave}
         >
           Save Changes
@@ -123,6 +124,7 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
         <button
           type="button"
           class="btn btn-ghost"
+          disabled={!isDirty()}
           onClick={handleReset}
         >
           Reset

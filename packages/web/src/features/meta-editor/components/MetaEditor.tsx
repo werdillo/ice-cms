@@ -19,7 +19,7 @@ const advancedFields = allFields.filter((field) =>
 )
 
 export const MetaEditor: Component<MetaEditorProps> = (props) => {
-  const { localData, isValid, handleChange, handleSave, handleReset } = useMetaEditor({
+  const { localData, isDirty, isValid, handleChange, handleSave, handleReset } = useMetaEditor({
     initialData: props.initialData,
     onChange: props.onChange,
   })
@@ -64,7 +64,7 @@ export const MetaEditor: Component<MetaEditorProps> = (props) => {
         <button
           type="button"
           class="btn btn-primary"
-          disabled={!isValid()}
+          disabled={!isDirty() || !isValid()}
           onClick={handleSave}
         >
           Save Changes
@@ -72,6 +72,7 @@ export const MetaEditor: Component<MetaEditorProps> = (props) => {
         <button
           type="button"
           class="btn btn-ghost"
+          disabled={!isDirty()}
           onClick={handleReset}
         >
           Reset

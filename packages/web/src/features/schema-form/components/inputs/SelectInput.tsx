@@ -3,7 +3,7 @@ import type { SelectField } from '../../types'
 
 const SelectInput: Component<{
   field: SelectField
-  value: string
+  value: () => string
   onChange: (v: string) => void
 }> = (props) => (
   <div class="form-control w-full">
@@ -12,7 +12,7 @@ const SelectInput: Component<{
     </label>
     <select
       class="select select-sm select-bordered w-full"
-      value={props.value ?? props.field.defaultValue}
+      value={props.value()}
       onChange={(e) => props.onChange(e.currentTarget.value)}
     >
       <For each={props.field.options}>

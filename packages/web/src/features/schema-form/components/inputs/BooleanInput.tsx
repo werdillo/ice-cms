@@ -3,7 +3,7 @@ import type { BooleanField } from '../../types'
 
 const BooleanInput: Component<{
   field: BooleanField
-  value: boolean
+  value: () => boolean
   onChange: (v: boolean) => void
 }> = (props) => (
   <div class="form-control">
@@ -11,7 +11,7 @@ const BooleanInput: Component<{
       <input
         type="checkbox"
         class="toggle toggle-sm toggle-primary"
-        checked={props.value ?? props.field.defaultValue}
+        checked={props.value()}
         onChange={(e) => props.onChange(e.currentTarget.checked)}
       />
       <span class="label-text text-xs font-medium opacity-70">{props.field.label}</span>
