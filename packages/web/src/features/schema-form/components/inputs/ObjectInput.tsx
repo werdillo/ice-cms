@@ -1,4 +1,4 @@
-import { type Component, For, createMemo } from 'solid-js'
+import { type Component, Index, createMemo } from 'solid-js'
 import type { ObjectField } from '../../types'
 import { FieldRenderer } from '../FieldRenderer'
 
@@ -15,15 +15,15 @@ const ObjectInput: Component<{
         {props.field.label}
       </p>
       <div class="flex flex-col gap-2">
-        <For each={props.field.fields}>
+        <Index each={props.field.fields}>
           {(subField) => (
             <FieldRenderer
-              field={subField}
+              field={subField()}
               data={value()}
               onChange={(updated) => props.onChange(updated)}
             />
           )}
-        </For>
+        </Index>
       </div>
     </div>
   )

@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "ice-cms",
+      "dependencies": {
+        "lucide-solid": "^1.0.0-rc.1",
+      },
       "devDependencies": {
         "typescript": "^5.9.2",
       },
@@ -556,6 +559,8 @@
     "lightningcss-win32-x64-msvc": ["lightningcss-win32-x64-msvc@1.31.1", "", { "os": "win32", "cpu": "x64" }, "sha512-I9aiFrbd7oYHwlnQDqr1Roz+fTz61oDDJX7n9tYF9FJymH1cIN1DtKw3iYt6b8WZgEjoNwVSncwF4wx/ZedMhw=="],
 
     "lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
+
+    "lucide-solid": ["lucide-solid@1.0.0-rc.1", "", { "peerDependencies": { "solid-js": "^1.4.7" } }, "sha512-bIF3b/yUThvHqTDShe1KcTxeAgc6SuBOef1QwO93AxlRqTH7aRen0CAtV3FRv6uZ75pU3bNGxnZGdqvs+sEYog=="],
 
     "magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
 

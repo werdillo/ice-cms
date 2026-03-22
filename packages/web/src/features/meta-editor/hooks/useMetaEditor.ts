@@ -14,8 +14,9 @@ export function useMetaEditor(props: UseMetaEditorProps) {
     return !!(data.title && data.description && data.keywords?.length)
   })
 
-  const handleChange = (field: keyof PageMeta, value: any) => {
-    setLocalData(prev => ({ ...prev, [field]: value }))
+  // Accepts a full partial object and merges it in a single setLocalData call
+  const handleChange = (updated: Partial<PageMeta>) => {
+    setLocalData((prev) => ({ ...prev, ...updated }))
   }
 
   const handleSave = () => {

@@ -1,4 +1,4 @@
-import { type Component, For, createMemo } from 'solid-js'
+import { type Component, Index, createMemo } from 'solid-js'
 import type { ArrayField } from '../../types'
 import { FieldRenderer } from '../FieldRenderer'
 
@@ -36,32 +36,32 @@ const ArrayInput: Component<{
       </div>
 
       <div class="flex flex-col gap-3">
-        <For each={items()}>
+        <Index each={items()}>
           {(item, index) => (
             <div class="rounded-box border border-base-content/10 bg-base-200/60 p-3 relative">
               <button
                 type="button"
                 class="btn btn-xs btn-ghost btn-circle absolute top-2 right-2 text-error"
-                onClick={() => removeItem(index())}
+                onClick={() => removeItem(index)}
                 title="Remove"
               >
                 ✕
               </button>
-              <p class="text-xs opacity-40 mb-2">#{index() + 1}</p>
+              <p class="text-xs opacity-40 mb-2">#{index + 1}</p>
               <div class="flex flex-col gap-2">
-                <For each={props.field.itemFields}>
+                <Index each={props.field.itemFields}>
                   {(subField) => (
                     <FieldRenderer
-                      field={subField}
-                      data={item as Record<string, unknown>}
-                      onChange={(updated) => updateItem(index(), updated)}
+                      field={subField()}
+                      data={item()}
+                      onChange={(updated) => updateItem(index, updated)}
                     />
                   )}
-                </For>
+                </Index>
               </div>
             </div>
           )}
-        </For>
+        </Index>
       </div>
     </div>
   )

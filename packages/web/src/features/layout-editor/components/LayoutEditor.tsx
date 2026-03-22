@@ -1,21 +1,29 @@
-import { type Component, For } from 'solid-js'
+import { type Component, For, createMemo } from 'solid-js'
 import { LANGS } from '@ice-cms/schemas'
 import { SchemaForm } from '../../schema-form'
 import { CollapsibleSection } from '../../../components/CollapsibleSection'
 import { useLayoutEditor } from '../hooks/useLayoutEditor'
 import { layoutEditorFields } from '../services/layout-editor.schemas'
 import type { LayoutSectionsByLang } from '../hooks/useLayoutEditor'
+import type { Lang } from '@ice-cms/schemas'
 
 type LayoutEditorProps = {
   initialData: LayoutSectionsByLang
   onChange: (data: LayoutSectionsByLang) => void
 }
 
+// Defined outside to avoid recreation on every parent render
+const LangBadge: Component<{ lang: () => Lang }> = (props) => (
+  <span class="ml-2 text-xs font-mono uppercase opacity-40">
+    {props.lang()}
+  </span>
+)
+
 export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
   const {
     activeLang,
     setActiveLang,
-    currentData,
+    localData,
     isValid,
     handleHeaderChange,
     handleFooterChange,
@@ -24,10 +32,16 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
     handleReset,
   } = useLayoutEditor(props)
 
-  const LangBadge = () => (
-    <span class="ml-2 text-xs font-mono uppercase opacity-40">
-      {activeLang()}
-    </span>
+  // Granular memos per section — only the changed section re-renders,
+  // not the entire form tree
+  const headerData = createMemo(
+    () => (localData().header[activeLang()] as Record<string, unknown>) ?? {}
+  )
+  const footerData = createMemo(
+    () => (localData().footer[activeLang()] as Record<string, unknown>) ?? {}
+  )
+  const sidebarData = createMemo(
+    () => (localData().sidebar[activeLang()] as Record<string, unknown>) ?? {}
   )
 
   return (
@@ -61,37 +75,37 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
 
       <div class="grid grid-cols-1 gap-4">
         <CollapsibleSection
-          title={<>Header <LangBadge /></>}
+          title={<>Header <LangBadge lang={activeLang} /></>}
           titleClass="text-base font-semibold"
           defaultOpen={true}
         >
           <SchemaForm
             fields={layoutEditorFields.header}
-            data={(currentData().header as Record<string, unknown>) ?? {}}
+            data={headerData()}
             onChange={handleHeaderChange}
           />
         </CollapsibleSection>
 
         <CollapsibleSection
-          title={<>Footer <LangBadge /></>}
+          title={<>Footer <LangBadge lang={activeLang} /></>}
           titleClass="text-base font-semibold"
           defaultOpen={true}
         >
           <SchemaForm
             fields={layoutEditorFields.footer}
-            data={(currentData().footer as Record<string, unknown>) ?? {}}
+            data={footerData()}
             onChange={handleFooterChange}
           />
         </CollapsibleSection>
 
         <CollapsibleSection
-          title={<>Sidebar <LangBadge /></>}
+          title={<>Sidebar <LangBadge lang={activeLang} /></>}
           titleClass="text-base font-semibold"
           defaultOpen={true}
         >
           <SchemaForm
             fields={layoutEditorFields.sidebar}
-            data={(currentData().sidebar as Record<string, unknown>) ?? {}}
+            data={sidebarData()}
             onChange={handleSidebarChange}
           />
         </CollapsibleSection>

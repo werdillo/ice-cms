@@ -1,4 +1,4 @@
-import { type Component, For, createMemo, createSignal, createEffect } from 'solid-js'
+import { type Component, For, createMemo, createSignal, untrack } from 'solid-js'
 import { LANGS, type Lang } from '@ice-cms/schemas'
 import type { BlockMeta } from '@ice-cms/schemas'
 import type { z } from 'zod'
@@ -12,13 +12,11 @@ type BlockFormProps = {
 
 export const BlockForm: Component<BlockFormProps> = (props) => {
   const [activeLang, setActiveLang] = createSignal<Lang>('lv')
-  const [localData, setLocalData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>({})
+  // Initialize once with untrack — never re-sync from props.data automatically
+  const [localData, setLocalData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>(
+    untrack(() => structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>)
+  )
   const [isDirty, setIsDirty] = createSignal(false)
-
-  createEffect(() => {
-    setLocalData(structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>)
-    setIsDirty(false)
-  })
 
   const fields = createMemo(() =>
     schemaToFields(props.meta.schema as z.ZodTypeAny)

@@ -1,4 +1,4 @@
-import { type Component, For } from 'solid-js'
+import { type Component, Index } from 'solid-js'
 import type { FieldDescriptor } from '../types'
 import { FieldRenderer } from './FieldRenderer'
 
@@ -11,18 +11,20 @@ export type SchemaFormProps = {
 }
 
 // --- Root SchemaForm ---
+// Using Index instead of For so that field components are NOT recreated
+// when only the data changes — only the data accessor is updated in place.
 export const SchemaForm: Component<SchemaFormProps> = (props) => {
   return (
     <div class="flex flex-col gap-3 w-full">
-      <For each={props.fields}>
+      <Index each={props.fields}>
         {(field) => (
           <FieldRenderer
-            field={field}
+            field={field()}
             data={props.data}
             onChange={props.onChange}
           />
         )}
-      </For>
+      </Index>
     </div>
   )
 }

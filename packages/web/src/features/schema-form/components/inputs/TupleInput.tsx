@@ -1,4 +1,4 @@
-import { type Component, For, createMemo } from 'solid-js'
+import { type Component, Index, createMemo } from 'solid-js'
 import type { TupleField } from '../../types'
 import { FieldRenderer } from '../FieldRenderer'
 
@@ -9,7 +9,6 @@ const TupleInput: Component<{
 }> = (props) => {
   const items = createMemo(() => {
     const val = Array.isArray(props.value) ? props.value : []
-    // Ensure correct length using defaultItems as fallback
     return Array.from({ length: props.field.length }, (_, i) =>
       val[i] ?? structuredClone(props.field.defaultItems[i])
     )
@@ -31,24 +30,24 @@ const TupleInput: Component<{
       </div>
 
       <div class="flex flex-col gap-3">
-        <For each={items()}>
+        <Index each={items()}>
           {(item, index) => (
             <div class="rounded-box border border-base-content/10 bg-base-200/60 p-3">
-              <p class="text-xs opacity-40 mb-2">#{index() + 1}</p>
+              <p class="text-xs opacity-40 mb-2">#{index + 1}</p>
               <div class="flex flex-col gap-2">
-                <For each={props.field.itemFields}>
+                <Index each={props.field.itemFields}>
                   {(subField) => (
                     <FieldRenderer
-                      field={subField}
-                      data={item}
-                      onChange={(updated) => updateItem(index(), updated)}
+                      field={subField()}
+                      data={item()}
+                      onChange={(updated) => updateItem(index, updated)}
                     />
                   )}
-                </For>
+                </Index>
               </div>
             </div>
           )}
-        </For>
+        </Index>
       </div>
     </div>
   )

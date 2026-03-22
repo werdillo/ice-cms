@@ -9,19 +9,30 @@ type MetaEditorProps = {
   onChange: (data: PageMeta) => void
 }
 
+// Compute fields once at module level — they never change
+const allFields = schemaToFields(metaSchema)
+const basicFields = allFields.filter((field) =>
+  ['title', 'description', 'keywords'].includes(field.key)
+)
+const advancedFields = allFields.filter((field) =>
+  ['ogTitle', 'ogDescription', 'ogImage', 'canonicalUrl', 'robots'].includes(field.key)
+)
+
 export const MetaEditor: Component<MetaEditorProps> = (props) => {
   const { localData, isValid, handleChange, handleSave, handleReset } = useMetaEditor({
     initialData: props.initialData,
     onChange: props.onChange,
   })
 
-  const basicFields = schemaToFields(metaSchema).filter(field =>
-    ['title', 'description', 'keywords'].includes(field.key)
-  )
+  // Merge the whole updated object in one setLocalData call instead of
+  // iterating Object.entries and calling handleChange per key
+  const handleBasicChange = (updated: Record<string, unknown>) => {
+    handleChange(updated as Partial<PageMeta>)
+  }
 
-  const advancedFields = schemaToFields(metaSchema).filter(field =>
-    ['ogTitle', 'ogDescription', 'ogImage', 'canonicalUrl', 'robots'].includes(field.key)
-  )
+  const handleAdvancedChange = (updated: Record<string, unknown>) => {
+    handleChange(updated as Partial<PageMeta>)
+  }
 
   return (
     <div class="max-w-5xl p-6 bg-base-100 rounded-lg">
@@ -34,11 +45,7 @@ export const MetaEditor: Component<MetaEditorProps> = (props) => {
           <SchemaForm
             fields={basicFields}
             data={localData()}
-            onChange={(updated) => {
-              Object.entries(updated).forEach(([key, value]) => {
-                handleChange(key as keyof PageMeta, value)
-              })
-            }}
+            onChange={handleBasicChange}
           />
         </div>
 
@@ -48,11 +55,7 @@ export const MetaEditor: Component<MetaEditorProps> = (props) => {
           <SchemaForm
             fields={advancedFields}
             data={localData()}
-            onChange={(updated) => {
-              Object.entries(updated).forEach(([key, value]) => {
-                handleChange(key as keyof PageMeta, value)
-              })
-            }}
+            onChange={handleAdvancedChange}
           />
         </div>
       </div>

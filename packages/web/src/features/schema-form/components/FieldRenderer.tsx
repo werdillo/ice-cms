@@ -33,12 +33,19 @@ function setByPath(
   value: unknown
 ): Record<string, unknown> {
   const keys = path.split('.')
-  const result = structuredClone(obj)
+  // Shallow copy at each level — avoids structuredClone which creates new object
+  // identity for every node and triggers unnecessary reactive updates
+  const result = { ...obj }
   let cur: Record<string, unknown> = result
   for (let i = 0; i < keys.length - 1; i++) {
     const k = keys[i]
-    if (!cur[k] || typeof cur[k] !== 'object') cur[k] = {}
-    cur = cur[k] as Record<string, unknown>
+    const next = cur[k]
+    const copy: Record<string, unknown> =
+      next && typeof next === 'object' && !Array.isArray(next)
+        ? { ...(next as Record<string, unknown>) }
+        : {}
+    cur[k] = copy
+    cur = copy
   }
   cur[keys[keys.length - 1]] = value
   return result
