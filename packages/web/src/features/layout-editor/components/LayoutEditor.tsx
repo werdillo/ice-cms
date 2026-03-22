@@ -1,6 +1,7 @@
 import { type Component, For } from 'solid-js'
 import { LANGS } from '@ice-cms/schemas'
 import { SchemaForm } from '../../schema-form'
+import { CollapsibleSection } from '../../../components/CollapsibleSection'
 import { useLayoutEditor } from '../hooks/useLayoutEditor'
 import { layoutEditorFields } from '../services/layout-editor.schemas'
 import type { LayoutSectionsByLang } from '../hooks/useLayoutEditor'
@@ -22,6 +23,12 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
     handleSave,
     handleReset,
   } = useLayoutEditor(props)
+
+  const LangBadge = () => (
+    <span class="ml-2 text-xs font-mono uppercase opacity-40">
+      {activeLang()}
+    </span>
+  )
 
   return (
     <div class="max-w-6xl p-6 bg-base-100 rounded-lg">
@@ -52,48 +59,42 @@ export const LayoutEditor: Component<LayoutEditorProps> = (props) => {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-6">
-        <section class="rounded-box border border-base-content/10 p-4">
-          <h3 class="text-lg font-semibold mb-4">
-            Header
-            <span class="ml-2 text-xs font-mono uppercase opacity-40">
-              {activeLang()}
-            </span>
-          </h3>
+      <div class="grid grid-cols-1 gap-4">
+        <CollapsibleSection
+          title={<>Header <LangBadge /></>}
+          titleClass="text-base font-semibold"
+          defaultOpen={true}
+        >
           <SchemaForm
             fields={layoutEditorFields.header}
             data={(currentData().header as Record<string, unknown>) ?? {}}
             onChange={handleHeaderChange}
           />
-        </section>
+        </CollapsibleSection>
 
-        <section class="rounded-box border border-base-content/10 p-4">
-          <h3 class="text-lg font-semibold mb-4">
-            Footer
-            <span class="ml-2 text-xs font-mono uppercase opacity-40">
-              {activeLang()}
-            </span>
-          </h3>
+        <CollapsibleSection
+          title={<>Footer <LangBadge /></>}
+          titleClass="text-base font-semibold"
+          defaultOpen={true}
+        >
           <SchemaForm
             fields={layoutEditorFields.footer}
             data={(currentData().footer as Record<string, unknown>) ?? {}}
             onChange={handleFooterChange}
           />
-        </section>
+        </CollapsibleSection>
 
-        <section class="rounded-box border border-base-content/10 p-4">
-          <h3 class="text-lg font-semibold mb-4">
-            Sidebar
-            <span class="ml-2 text-xs font-mono uppercase opacity-40">
-              {activeLang()}
-            </span>
-          </h3>
+        <CollapsibleSection
+          title={<>Sidebar <LangBadge /></>}
+          titleClass="text-base font-semibold"
+          defaultOpen={true}
+        >
           <SchemaForm
             fields={layoutEditorFields.sidebar}
             data={(currentData().sidebar as Record<string, unknown>) ?? {}}
             onChange={handleSidebarChange}
           />
-        </section>
+        </CollapsibleSection>
       </div>
 
       <div class="flex gap-4 mt-6">

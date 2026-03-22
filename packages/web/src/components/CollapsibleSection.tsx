@@ -1,7 +1,7 @@
 import { type Component, type JSX } from 'solid-js'
 
 type CollapsibleSectionProps = {
-  title: string
+  title: JSX.Element
   children: JSX.Element
   defaultOpen?: boolean
   titleClass?: string
@@ -16,7 +16,7 @@ export const CollapsibleSection: Component<CollapsibleSectionProps> = (props) =>
     >
       <input type="checkbox" checked={props.defaultOpen ?? false} />
       <div
-        class={`collapse-title text-xs font-semibold uppercase tracking-widest opacity-40 ${props.titleClass ?? ''}`}
+        class={`collapse-title ${props.titleClass ?? 'text-xs font-semibold uppercase tracking-widest opacity-40'}`}
       >
         {props.title}
       </div>
