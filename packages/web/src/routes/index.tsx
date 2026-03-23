@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router'
-import { createSignal } from 'solid-js'
+import { createSignal, onMount, Show } from 'solid-js'
 import { CollapsibleSection } from '../components/CollapsibleSection'
 import {
   SortableBlockList,
@@ -27,7 +27,8 @@ import { type PageMeta } from '../features/meta-editor'
 import { LayoutEditor } from '../features/layout-editor/components/LayoutEditor'
 import type { LayoutSectionsByLang } from '../features/layout-editor/hooks/useLayoutEditor'
 
-const API_URL = 'http://localhost:8000/api/content/publish'
+const API_BASE = 'http://localhost:8000/api/content'
+const PUBLISH_URL = `${API_BASE}/publish`
 
 export const Route = createFileRoute('/')({ component: App })
 
@@ -48,28 +49,78 @@ function makeBlock(
 }
 
 function App() {
+  const [isLoading, setIsLoading] = createSignal(true)
   const [isPublishing, setIsPublishing] = createSignal(false)
-  const [blocks, setBlocks] = createSignal<BlockState[]>([
-    makeBlock(mainSectionMeta, 0),
-    makeBlock(benefitsSectionMeta, 1),
-    makeBlock(solutionSectionMeta, 2),
-    makeBlock(bookCallMeta, 3),
-    makeBlock(servicesSectionMeta, 4),
-    makeBlock(featureSectionMeta, 5),
-    makeBlock(gallerySectionMeta, 6),
-    makeBlock(contactSectionMeta, 7),
-    makeBlock(faqSectionMeta, 8),
-  ])
+  const [blocks, setBlocks] = createSignal<BlockState[]>([])
 
-  const [metaData, setMetaData] = createSignal<Partial<PageMeta>>({
-    title: 'Page Title',
-    description: 'Page description',
-    keywords: 'keyword',
-  })
+  const [metaData, setMetaData] = createSignal<Partial<PageMeta>>({})
 
   const [layoutData, setLayoutData] = createSignal<LayoutSectionsByLang>(
     toLayoutBySection(makeDefaultLayouts())
   )
+
+  onMount(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/index`)
+      const result = await response.json()
+
+      if (response.ok && result.success && result.data.data) {
+        const remoteData = result.data.data as PageData
+
+        // 1. Meta (taking LV as base for the editor signal)
+        setMetaData(remoteData.meta.lv || {})
+
+        // 2. Layout
+        setLayoutData(remoteData.layout as LayoutSectionsByLang)
+
+        // 3. Blocks
+        const blockStates: BlockState[] = remoteData.blocks.map((b) => {
+          const meta =
+            [
+              mainSectionMeta,
+              benefitsSectionMeta,
+              solutionSectionMeta,
+              bookCallMeta,
+              servicesSectionMeta,
+              featureSectionMeta,
+              gallerySectionMeta,
+              contactSectionMeta,
+              faqSectionMeta,
+            ].find((m) => m.type === b.type) || mainSectionMeta
+
+          return {
+            id: b.id,
+            meta,
+            data: b.data as Record<string, any>,
+            enabled: b.enabled,
+          }
+        })
+        setBlocks(blockStates)
+      } else {
+        // Fallback to defaults if not found
+        setBlocks([
+          makeBlock(mainSectionMeta, 0),
+          makeBlock(benefitsSectionMeta, 1),
+          makeBlock(solutionSectionMeta, 2),
+          makeBlock(bookCallMeta, 3),
+          makeBlock(servicesSectionMeta, 4),
+          makeBlock(featureSectionMeta, 5),
+          makeBlock(gallerySectionMeta, 6),
+          makeBlock(contactSectionMeta, 7),
+          makeBlock(faqSectionMeta, 8),
+        ])
+        setMetaData({
+          title: 'Page Title',
+          description: 'Page description',
+          keywords: 'keyword',
+        })
+      }
+    } catch (err) {
+      console.error('Failed to load content:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  })
 
   const handleMetaChange = (newMeta: PageMeta) => {
     setMetaData(newMeta)
@@ -100,7 +151,7 @@ function App() {
 
     setIsPublishing(true)
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(PUBLISH_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +180,15 @@ function App() {
 
   return (
     <div class="min-h-screen bg-base-200 p-8">
-      <div class="max-w-6xl mx-auto flex flex-col gap-6">
+      <Show
+        when={!isLoading()}
+        fallback={
+          <div class="flex items-center justify-center min-h-[50vh]">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+          </div>
+        }
+      >
+        <div class="max-w-6xl mx-auto flex flex-col gap-6">
         <div class="flex items-start justify-between">
           <div>
             <h1 class="text-2xl font-bold">Page Editor</h1>
@@ -150,7 +209,7 @@ function App() {
                 Publishing...
               </>
             ) : (
-              'Publish to GitHub'
+              'Publish'
             )}
           </button>
         </div>
@@ -181,7 +240,8 @@ function App() {
             {JSON.stringify(pageData(), null, 2)}
           </pre>
         </CollapsibleSection>
-      </div>
+        </div>
+      </Show>
     </div>
   )
 }
