@@ -27,6 +27,8 @@ import { type PageMeta } from '../features/meta-editor'
 import { LayoutEditor } from '../features/layout-editor/components/LayoutEditor'
 import type { LayoutSectionsByLang } from '../features/layout-editor/hooks/useLayoutEditor'
 
+const API_URL = 'http://localhost:8000/api/content/publish'
+
 export const Route = createFileRoute('/')({ component: App })
 
 function makeBlock(
@@ -46,6 +48,7 @@ function makeBlock(
 }
 
 function App() {
+  const [isPublishing, setIsPublishing] = createSignal(false)
   const [blocks, setBlocks] = createSignal<BlockState[]>([
     makeBlock(mainSectionMeta, 0),
     makeBlock(benefitsSectionMeta, 1),
@@ -92,15 +95,64 @@ function App() {
     })),
   })
 
+  const handlePublish = async () => {
+    if (!confirm('Are you sure you want to publish these changes to GitHub?')) return
+
+    setIsPublishing(true)
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          slug: 'index', // Hardcoded for now, could be dynamic
+          content: pageData(),
+          commitMessage: `content: update index page at ${new Date().toISOString()}`,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        alert('Published successfully!')
+      } else {
+        throw new Error(result.error || 'Failed to publish')
+      }
+    } catch (err) {
+      console.error('Publish error:', err)
+      alert(`Error publishing: ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
   return (
     <div class="min-h-screen bg-base-200 p-8">
       <div class="max-w-6xl mx-auto flex flex-col gap-6">
-        <div>
-          <h1 class="text-2xl font-bold">Page Editor</h1>
+        <div class="flex items-start justify-between">
+          <div>
+            <h1 class="text-2xl font-bold">Page Editor</h1>
           <p class="text-sm opacity-50 mt-1">
             Drag <span class="font-semibold">⠿</span> to reorder blocks. Click{' '}
             <span class="font-semibold">Edit</span> to open the editor.
           </p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary"
+            onClick={handlePublish}
+            disabled={isPublishing()}
+          >
+            {isPublishing() ? (
+              <>
+                <span class="loading loading-spinner loading-xs"></span>
+                Publishing...
+              </>
+            ) : (
+              'Publish to GitHub'
+            )}
+          </button>
         </div>
 
         <CollapsibleSection title="Meta">
