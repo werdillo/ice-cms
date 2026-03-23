@@ -13,7 +13,29 @@ export type SolutionItem = z.infer<typeof solutionItemSchema>
 export const solutionSectionSchema = z.object({
   title: z.string().default(''),
   description: z.string().default(''),
-  solutions: z.array(solutionItemSchema).default([]),
+  solutions: z
+    .tuple([
+      solutionItemSchema,
+      solutionItemSchema,
+      solutionItemSchema,
+    ])
+    .default([
+      {
+        title: '',
+        description: '',
+        image: { src: '', alt: '' },
+      },
+      {
+        title: '',
+        description: '',
+        image: { src: '', alt: '' },
+      },
+      {
+        title: '',
+        description: '',
+        image: { src: '', alt: '' },
+      },
+    ]),
 })
 export type SolutionSection = z.infer<typeof solutionSectionSchema>
 
@@ -22,13 +44,23 @@ export const solutionSectionMeta = {
   id: SOLUTION_SECTION_ID,
   type: 'solution-section',
   label: 'Solution Section',
-  description: 'A section showcasing multiple solutions with image, title and description.',
+  description: 'A section showcasing 3 solutions with image, title and description.',
   icon: 'layout-grid',
   schema: solutionSectionSchema,
   defaultData: (): SolutionSection => ({
     title: '',
     description: '',
     solutions: [
+      {
+        title: '',
+        description: '',
+        image: { src: '', alt: '' },
+      },
+      {
+        title: '',
+        description: '',
+        image: { src: '', alt: '' },
+      },
       {
         title: '',
         description: '',

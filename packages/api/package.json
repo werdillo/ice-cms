@@ -14,14 +14,14 @@
   "dependencies": {
     "@hono/zod-validator": "^0.4.3",
     "@ice-cms/schemas": "workspace:*",
-    "drizzle-orm": "^0.44.0",
-    "hono": "^4.7.11",
-    "zod": "^3.24.1"
+    "drizzle-orm": "^0.44.7",
+    "hono": "^4.12.8",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250515.0",
-    "drizzle-kit": "^0.31.0",
-    "typescript": "^5.9.2",
-    "wrangler": "^4.0.0"
+    "@cloudflare/workers-types": "^4.20260317.1",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.76.0"
   }
 }
