@@ -42,7 +42,6 @@ function makeBlock(
     data: {
       lv: meta.defaultData() as unknown as Record<string, unknown>,
       en: meta.defaultData() as unknown as Record<string, unknown>,
-      ru: meta.defaultData() as unknown as Record<string, unknown>,
     },
     enabled: true,
   }
@@ -134,7 +133,6 @@ function App() {
     meta: {
       lv: metaData() as Record<string, string>,
       en: metaData() as Record<string, string>,
-      ru: metaData() as Record<string, string>,
     },
     layout: layoutData() as PageData['layout'],
     blocks: blocks().map((block, index) => ({
@@ -189,57 +187,57 @@ function App() {
         }
       >
         <div class="max-w-6xl mx-auto flex flex-col gap-6">
-        <div class="flex items-start justify-between">
-          <div>
-            <h1 class="text-2xl font-bold">Page Editor</h1>
-          <p class="text-sm opacity-50 mt-1">
-            Drag <span class="font-semibold">⠿</span> to reorder blocks. Click{' '}
-            <span class="font-semibold">Edit</span> to open the editor.
-          </p>
+          <div class="flex items-start justify-between">
+            <div>
+              <h1 class="text-2xl font-bold">Page Editor</h1>
+              <p class="text-sm opacity-50 mt-1">
+                Drag <span class="font-semibold">⠿</span> to reorder blocks. Click{' '}
+                <span class="font-semibold">Edit</span> to open the editor.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onClick={handlePublish}
+              disabled={isPublishing()}
+            >
+              {isPublishing() ? (
+                <>
+                  <span class="loading loading-spinner loading-xs"></span>
+                  Publishing...
+                </>
+              ) : (
+                'Publish'
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            class="btn btn-primary"
-            onClick={handlePublish}
-            disabled={isPublishing()}
+
+          <CollapsibleSection title="Meta">
+            <MetaEditor
+              initialData={metaData()}
+              onChange={handleMetaChange}
+            />
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Blocks" defaultOpen>
+            <SortableBlockList blocks={blocks()} onChange={setBlocks} />
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Layout">
+            <LayoutEditor
+              initialData={layoutData()}
+              onChange={handleLayoutChange}
+            />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="JSON Preview"
+            titleClass="text-sm font-semibold opacity-60 normal-case tracking-normal"
           >
-            {isPublishing() ? (
-              <>
-                <span class="loading loading-spinner loading-xs"></span>
-                Publishing...
-              </>
-            ) : (
-              'Publish'
-            )}
-          </button>
-        </div>
-
-        <CollapsibleSection title="Meta">
-          <MetaEditor
-            initialData={metaData()}
-            onChange={handleMetaChange}
-          />
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Blocks" defaultOpen>
-          <SortableBlockList blocks={blocks()} onChange={setBlocks} />
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Layout">
-          <LayoutEditor
-            initialData={layoutData()}
-            onChange={handleLayoutChange}
-          />
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          title="JSON Preview"
-          titleClass="text-sm font-semibold opacity-60 normal-case tracking-normal"
-        >
-          <pre class="text-xs overflow-x-auto bg-base-200 rounded-box p-4">
-            {JSON.stringify(pageData(), null, 2)}
-          </pre>
-        </CollapsibleSection>
+            <pre class="text-xs overflow-x-auto bg-base-200 rounded-box p-4">
+              {JSON.stringify(pageData(), null, 2)}
+            </pre>
+          </CollapsibleSection>
         </div>
       </Show>
     </div>

@@ -56,6 +56,5 @@ export function makeDefaultLayouts(): Partial<Record<Lang, Layout>> {
   return {
     lv: makeDefaultLayout('lv'),
     en: makeDefaultLayout('en'),
-    ru: makeDefaultLayout('ru'),
   }
 }

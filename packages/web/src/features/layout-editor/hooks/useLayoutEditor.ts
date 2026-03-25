@@ -18,7 +18,7 @@ function isCompleteObject(value: unknown): boolean {
 }
 
 function isLayoutValid(data: LayoutSectionsByLang): boolean {
-  return (['lv', 'en', 'ru'] as Lang[]).every((lang) => {
+  return (['lv', 'en'] as Lang[]).every((lang) => {
     const header = data.header[lang]
     const footer = data.footer[lang]
     const sidebar = data.sidebar[lang]

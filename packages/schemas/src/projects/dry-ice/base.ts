@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // --- Languages ---
-export const LANGS = ['en', 'lv', 'ru'] as const
+export const LANGS = ['en', 'lv'] as const
 export type Lang = (typeof LANGS)[number]
 
 export const langSchema = z.enum(LANGS)
