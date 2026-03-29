@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { createDb } from './db'
 import { contentApp } from './feature/content'
+import { authRoute, createAuthMiddleware } from './feature/auth'
 
 export type Env = {
   DB: D1Database
@@ -13,6 +14,9 @@ export type Env = {
   GITHUB_REPO: string
   GITHUB_BRANCH?: string
   FRONTEND_CONTENT_PATH?: string
+  ADMIN_USERNAME: string
+  ADMIN_PASSWORD: string
+  JWT_SECRET: string
 }
 
 const app = new Hono<{ Bindings: Env }>()
@@ -29,9 +33,23 @@ app.use(
   })
 )
 
-// --- Health check ---
+// --- Health check (public) ---
 app.get('/api/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// --- Auth (public) ---
+app.route('/api/auth', authRoute)
+
+// --- Protected middleware ---
+app.use('/api/content/*', async (c, next) => {
+  return createAuthMiddleware(() => c.env.JWT_SECRET)(c, next)
+})
+app.use('/api/publish', async (c, next) => {
+  return createAuthMiddleware(() => c.env.JWT_SECRET)(c, next)
+})
+app.use('/api/pages/*', async (c, next) => {
+  return createAuthMiddleware(() => c.env.JWT_SECRET)(c, next)
 })
 
 // --- Publish (trigger Astro rebuild) ---
@@ -94,7 +112,6 @@ app.get('/api/pages/:slug', async (c) => {
         })
       : []
 
-  // Shape into final JSON for Astro
   const metaByLang = Object.fromEntries(
     meta.map((m) => [m.lang, { ...m, id: undefined, pageId: undefined, lang: undefined }])
   )

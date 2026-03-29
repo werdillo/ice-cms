@@ -1,5 +1,6 @@
-import { Link } from '@tanstack/solid-router'
-import { createSignal, onMount } from 'solid-js'
+import { Link, useNavigate } from '@tanstack/solid-router'
+import { createSignal, onMount, Show } from 'solid-js'
+import { authStore } from '../features/auth/auth.store'
 
 type Theme = 'light' | 'dark'
 
@@ -9,7 +10,13 @@ function getInitialTheme(): Theme {
 }
 
 export default function Header() {
+  const navigate = useNavigate()
   const [theme, setTheme] = createSignal<Theme>('dark')
+
+  const handleLogout = () => {
+    authStore.logout()
+    navigate({ to: '/login' })
+  }
 
   onMount(() => {
     const saved = getInitialTheme()
@@ -46,6 +53,17 @@ export default function Header() {
 
         {/* Spacer */}
         <div class="flex-1" />
+
+        {/* Logout */}
+        <Show when={authStore.isAuthenticated()}>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm opacity-60 hover:opacity-100"
+            onClick={handleLogout}
+          >
+            Sign out
+          </button>
+        </Show>
 
         {/* Theme toggle */}
         <button

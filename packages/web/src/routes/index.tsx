@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/solid-router'
+import { createFileRoute, redirect } from '@tanstack/solid-router'
 import { createSignal, onMount, Show } from 'solid-js'
 import { CollapsibleSection } from '../components/CollapsibleSection'
 import {
@@ -25,11 +25,20 @@ import {
 import { MetaEditor, type MetaByLang } from '../features/meta-editor'
 import { LayoutEditor } from '../features/layout-editor/components/LayoutEditor'
 import type { LayoutSectionsByLang } from '../features/layout-editor/types'
+import { apiFetch } from '../lib/api-fetch'
+import { authStore } from '../features/auth/auth.store'
 
 const API_BASE = 'http://localhost:8000/api/content'
 const PUBLISH_URL = `${API_BASE}/publish`
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({
+  beforeLoad: () => {
+    if (!authStore.isAuthenticated()) {
+      throw redirect({ to: '/login' })
+    }
+  },
+  component: App,
+})
 
 const DEFAULT_META: MetaByLang = {
   lv: { title: 'Page Title', description: 'Page description', keywords: 'keyword', ogTitle: '', ogDescription: '', ogImage: '', canonicalUrl: '', robots: '' },
@@ -62,7 +71,7 @@ function App() {
 
   onMount(async () => {
     try {
-      const response = await fetch(`${API_BASE}/index`)
+      const response = await apiFetch(`${API_BASE}/index`)
       const result = await response.json()
 
       if (response.ok && result.success && result.data.data) {
@@ -136,7 +145,7 @@ function App() {
 
     setIsPublishing(true)
     try {
-      const response = await fetch(PUBLISH_URL, {
+      const response = await apiFetch(PUBLISH_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
