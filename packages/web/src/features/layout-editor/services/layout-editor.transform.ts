@@ -1,6 +1,7 @@
 import { LANGS, type Lang } from '@ice-cms/schemas'
 import type { PageLayout } from '../types'
-import type { LayoutByLang } from './layout-editor.validation'
+
+export type LayoutByLang = Partial<Record<Lang, Partial<PageLayout>>>
 
 export type LayoutBySection = {
   header: Partial<Record<Lang, PageLayout['header']>>

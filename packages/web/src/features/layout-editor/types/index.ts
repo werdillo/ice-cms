@@ -1,1 +1,1 @@
-export type { Layout as PageLayout } from '@ice-cms/schemas'
+export type { Layout as PageLayout, LayoutBySection as LayoutSectionsByLang } from '@ice-cms/schemas'

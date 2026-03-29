@@ -22,15 +22,19 @@ import {
   makeDefaultLayouts,
   toLayoutBySection,
 } from '../features/layout-editor/services'
-import { MetaEditor } from '../features/meta-editor/components'
-import { type PageMeta } from '../features/meta-editor'
+import { MetaEditor, type MetaByLang } from '../features/meta-editor'
 import { LayoutEditor } from '../features/layout-editor/components/LayoutEditor'
-import type { LayoutSectionsByLang } from '../features/layout-editor/hooks/useLayoutEditor'
+import type { LayoutSectionsByLang } from '../features/layout-editor/types'
 
 const API_BASE = 'http://localhost:8000/api/content'
 const PUBLISH_URL = `${API_BASE}/publish`
 
 export const Route = createFileRoute('/')({ component: App })
+
+const DEFAULT_META: MetaByLang = {
+  lv: { title: 'Page Title', description: 'Page description', keywords: 'keyword', ogTitle: '', ogDescription: '', ogImage: '', canonicalUrl: '', robots: '' },
+  en: { title: 'Page Title', description: 'Page description', keywords: 'keyword', ogTitle: '', ogDescription: '', ogImage: '', canonicalUrl: '', robots: '' },
+}
 
 function makeBlock(
   meta: BlockState['meta'],
@@ -51,9 +55,7 @@ function App() {
   const [isLoading, setIsLoading] = createSignal(true)
   const [isPublishing, setIsPublishing] = createSignal(false)
   const [blocks, setBlocks] = createSignal<BlockState[]>([])
-
-  const [metaData, setMetaData] = createSignal<Partial<PageMeta>>({})
-
+  const [metaData, setMetaData] = createSignal<MetaByLang>(DEFAULT_META)
   const [layoutData, setLayoutData] = createSignal<LayoutSectionsByLang>(
     toLayoutBySection(makeDefaultLayouts())
   )
@@ -66,8 +68,8 @@ function App() {
       if (response.ok && result.success && result.data.data) {
         const remoteData = result.data.data as PageData
 
-        // 1. Meta (taking LV as base for the editor signal)
-        setMetaData(remoteData.meta.lv || {})
+        // 1. Meta — stored per-lang
+        setMetaData(remoteData.meta as MetaByLang)
 
         // 2. Layout
         setLayoutData(remoteData.layout as LayoutSectionsByLang)
@@ -96,7 +98,7 @@ function App() {
         })
         setBlocks(blockStates)
       } else {
-        // Fallback to defaults if not found
+        // Fallback to defaults
         setBlocks([
           makeBlock(mainSectionMeta, 0),
           makeBlock(benefitsSectionMeta, 1),
@@ -108,11 +110,7 @@ function App() {
           makeBlock(contactSectionMeta, 7),
           makeBlock(faqSectionMeta, 8),
         ])
-        setMetaData({
-          title: 'Page Title',
-          description: 'Page description',
-          keywords: 'keyword',
-        })
+        setMetaData(DEFAULT_META)
       }
     } catch (err) {
       console.error('Failed to load content:', err)
@@ -121,19 +119,8 @@ function App() {
     }
   })
 
-  const handleMetaChange = (newMeta: PageMeta) => {
-    setMetaData(newMeta)
-  }
-
-  const handleLayoutChange = (newLayout: LayoutSectionsByLang) => {
-    setLayoutData(newLayout)
-  }
-
   const pageData = (): PageData => ({
-    meta: {
-      lv: metaData() as Record<string, string>,
-      en: metaData() as Record<string, string>,
-    },
+    meta: metaData() as PageData['meta'],
     layout: layoutData() as PageData['layout'],
     blocks: blocks().map((block, index) => ({
       id: block.id,
@@ -151,11 +138,9 @@ function App() {
     try {
       const response = await fetch(PUBLISH_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          slug: 'index', // Hardcoded for now, could be dynamic
+          slug: 'index',
           content: pageData(),
           commitMessage: `content: update index page at ${new Date().toISOString()}`,
         }),
@@ -214,8 +199,8 @@ function App() {
 
           <CollapsibleSection title="Meta">
             <MetaEditor
-              initialData={metaData()}
-              onChange={handleMetaChange}
+              data={metaData()}
+              onChange={setMetaData}
             />
           </CollapsibleSection>
 
@@ -226,7 +211,7 @@ function App() {
           <CollapsibleSection title="Layout">
             <LayoutEditor
               initialData={layoutData()}
-              onChange={handleLayoutChange}
+              onChange={setLayoutData}
             />
           </CollapsibleSection>
 

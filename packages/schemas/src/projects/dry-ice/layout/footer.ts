@@ -49,8 +49,3 @@ export const footerConfigSchema = z.object({
   ariaLabel: z.string().min(1),
 })
 export type FooterConfig = z.infer<typeof footerConfigSchema>
-
-export const footerPropsSchema = z.object({
-  config: footerConfigSchema.partial().optional(),
-})
-export type FooterProps = z.infer<typeof footerPropsSchema>

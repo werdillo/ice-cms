@@ -12,11 +12,3 @@ export const sidebarConfigSchema = z.object({
   ariaLabel: z.string().min(1).default('Sidebar navigation'),
 })
 export type SidebarConfig = z.infer<typeof sidebarConfigSchema>
-
-export const sidebarPropsSchema = z.object({
-  config: sidebarConfigSchema.partial().optional(),
-})
-export type SidebarProps = z.infer<typeof sidebarPropsSchema>
-
-export const sidebarSchema = sidebarConfigSchema
-export type Sidebar = z.infer<typeof sidebarSchema>
