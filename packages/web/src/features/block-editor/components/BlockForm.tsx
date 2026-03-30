@@ -12,9 +12,21 @@ type BlockFormProps = {
 
 export const BlockForm: Component<BlockFormProps> = (props) => {
   const [activeLang, setActiveLang] = createSignal<Lang>('lv')
-  // Initialize once with untrack — never re-sync from props.data automatically
+  // Initialize once with untrack — never re-sync from props.data automatically.
+  // Each language gets its own deep-cloned object so nested values (e.g. image
+  // objects) are never shared between langs, even when both come from the same
+  // defaultData() reference.
   const [localData, setLocalData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>(
-    untrack(() => structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>)
+    untrack(() => {
+      const cloned = structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>
+      // Ensure every language has its own independent object
+      for (const lang of LANGS) {
+        if (!cloned[lang]) {
+          cloned[lang] = structuredClone(props.meta.defaultData()) as Record<string, unknown>
+        }
+      }
+      return cloned
+    })
   )
   const [isDirty, setIsDirty] = createSignal(false)
 
@@ -23,10 +35,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
   )
 
   const currentData = createMemo(
-    () =>
-      (localData()[activeLang()] as Record<string, unknown>) ??
-      (props.meta.defaultData() as Record<string, unknown> | undefined) ??
-      {}
+    () => (localData()[activeLang()] as Record<string, unknown>) ?? {}
   )
 
   const handleChange = (updated: Record<string, unknown>) => {

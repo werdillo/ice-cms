@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { imageSchema } from '../base'
 
 export const MAIN_SECTION_ID = '__main-section' as const
 
@@ -9,10 +10,8 @@ export const mainSectionSchema = z.object({
   description: z.string().default(''),
   buttonText: z.string().default(''),
   buttonHref: z.string().default(''),
-  image1Src: z.string().default(''),
-  image1Alt: z.string().default(''),
-  image2Src: z.string().default(''),
-  image2Alt: z.string().default(''),
+  image1: imageSchema.default({ src: '', alt: '' }),
+  image2: imageSchema.default({ src: '', alt: '' }),
 })
 export type MainSection = z.infer<typeof mainSectionSchema>
 
@@ -30,9 +29,7 @@ export const mainSectionMeta = {
     description: '',
     buttonText: '',
     buttonHref: '',
-    image1Src: '',
-    image1Alt: '',
-    image2Src: '',
-    image2Alt: '',
+    image1: { src: '', alt: '' },
+    image2: { src: '', alt: '' },
   }),
 } as const

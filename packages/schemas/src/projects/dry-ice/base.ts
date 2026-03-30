@@ -7,10 +7,11 @@ export type Lang = (typeof LANGS)[number]
 export const langSchema = z.enum(LANGS)
 
 // --- Image ---
+// .describe('image') is used by the schema-form to render an ImageInput
 export const imageSchema = z.object({
-  src: z.string().min(1),
+  src: z.string().default(''),
   alt: z.string().default(''),
-})
+}).describe('image')
 export type Image = z.infer<typeof imageSchema>
 
 // --- Link ---

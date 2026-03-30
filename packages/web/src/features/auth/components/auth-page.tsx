@@ -2,7 +2,7 @@ import { type Component, createSignal } from 'solid-js'
 import { useNavigate } from '@tanstack/solid-router'
 import { authStore } from '../auth.store'
 
-const API_BASE = 'http://localhost:8000/api'
+const API_BASE = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api`
 
 export const AuthPage: Component = () => {
   const navigate = useNavigate()

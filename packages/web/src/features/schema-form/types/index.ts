@@ -8,4 +8,6 @@ export type {
   ObjectField,
   ArrayField,
   TupleField,
+  ImageField,
+  ImageArrayField,
 } from './field.ts'

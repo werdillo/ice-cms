@@ -5,19 +5,34 @@
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
 
-  "d1_databases": [
+  "r2_buckets": [
     {
-      "binding": "DB",
-      "database_name": "ice-cms-db",
-      "database_id": "placeholder-replace-after-wrangler-d1-create"
+      "binding": "STORAGE",
+      "bucket_name": "cms-bucket"
     }
   ],
 
   "vars": {
-    "ENVIRONMENT": "development"
+    "ENVIRONMENT": "development",
+    "R2_PUBLIC_BASE_URL": "https://pub-faacf66cb3a14c74a63b8dee80132038.r2.dev"
   },
 
   "dev": {
     "port": 8000
+  },
+
+  "env": {
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production",
+        "R2_PUBLIC_BASE_URL": "https://pub-faacf66cb3a14c74a63b8dee80132038.r2.dev"
+      },
+      "r2_buckets": [
+        {
+          "binding": "STORAGE",
+          "bucket_name": "cms-bucket"
+        }
+      ]
+    }
   }
 }

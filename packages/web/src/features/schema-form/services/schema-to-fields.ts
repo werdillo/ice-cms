@@ -8,6 +8,7 @@ import type {
   BooleanField,
   SelectField,
   ObjectField,
+  ImageField,
 } from '../types'
 
 // --- Label helper ---
@@ -56,6 +57,7 @@ export function buildDefaultItem(
       obj[field.key] = buildDefaultItem(field.fields)
     else if (field.kind === 'array') obj[field.key] = []
     else if (field.kind === 'tuple') obj[field.key] = field.defaultItems
+    else if (field.kind === 'image') obj[field.key] = { src: '', alt: '' }
   }
   return obj
 }
@@ -121,8 +123,16 @@ export function schemaToFields(
       } satisfies StringField
     }
 
-    // --- Array ---
+    // --- Array of images ---
     if (field instanceof z.ZodArray) {
+      const itemType = unwrap(field._def.type)
+      if (itemType instanceof z.ZodObject && (itemType as any)._def.description === 'image') {
+        return {
+          kind: 'image-array',
+          key,
+          label,
+        }
+      }
       const itemFields = schemaToFields(field._def.type, fullKey)
       return {
         kind: 'array',
@@ -149,6 +159,15 @@ export function schemaToFields(
           structuredClone(defaultItem)
         ),
       } satisfies TupleField
+    }
+
+    // --- Image (ZodObject with .describe('image')) ---
+    if (field instanceof z.ZodObject && (field as any)._def.description === 'image') {
+      return {
+        kind: 'image',
+        key,
+        label,
+      } satisfies ImageField
     }
 
     // --- Object ---

@@ -1,12 +1,13 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import { createDb } from './db'
+
 import { contentApp } from './feature/content'
 import { authRoute, createAuthMiddleware } from './feature/auth'
+import { storageRoute } from './feature/storage'
 
 export type Env = {
-  DB: D1Database
+  STORAGE: R2Bucket
   ENVIRONMENT: string
   DEPLOY_HOOK_URL: string
   GITHUB_TOKEN: string
@@ -17,6 +18,7 @@ export type Env = {
   ADMIN_USERNAME: string
   ADMIN_PASSWORD: string
   JWT_SECRET: string
+  R2_PUBLIC_BASE_URL: string
 }
 
 const app = new Hono<{ Bindings: Env }>()
@@ -26,7 +28,17 @@ app.use('*', logger())
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:3000', 'https://ice-cms.pages.dev'],
+    origin: (origin) => {
+      if (!origin) return '*'
+      if (
+        origin.startsWith('http://localhost') ||
+        origin.endsWith('.pages.dev') ||
+        origin.endsWith('.workers.dev')
+      ) {
+        return origin
+      }
+      return null
+    },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -48,9 +60,7 @@ app.use('/api/content/*', async (c, next) => {
 app.use('/api/publish', async (c, next) => {
   return createAuthMiddleware(() => c.env.JWT_SECRET)(c, next)
 })
-app.use('/api/pages/*', async (c, next) => {
-  return createAuthMiddleware(() => c.env.JWT_SECRET)(c, next)
-})
+
 
 // --- Publish (trigger Astro rebuild) ---
 app.post('/api/publish', async (c) => {
@@ -72,83 +82,10 @@ app.post('/api/publish', async (c) => {
 // --- Content ---
 app.route('/api/content', contentApp)
 
-// --- Pages ---
-app.get('/api/pages', async (c) => {
-  const db = createDb(c.env.DB)
-  const pages = await db.query.pages.findMany()
-  return c.json({ data: pages })
-})
+// --- Storage ---
+app.route('/api/storage', storageRoute)
 
-app.get('/api/pages/:slug', async (c) => {
-  const slug = c.req.param('slug')
-  const db = createDb(c.env.DB)
 
-  const page = await db.query.pages.findFirst({
-    where: (pages, { eq }) => eq(pages.slug, slug),
-  })
-
-  if (!page) {
-    return c.json({ error: 'Page not found' }, 404)
-  }
-
-  const [meta, layout, blocks] = await Promise.all([
-    db.query.pageMeta.findMany({
-      where: (m, { eq }) => eq(m.pageId, page.id),
-    }),
-    db.query.pageLayout.findMany({
-      where: (l, { eq }) => eq(l.pageId, page.id),
-    }),
-    db.query.blocks.findMany({
-      where: (b, { eq }) => eq(b.pageId, page.id),
-      orderBy: (b, { asc }) => [asc(b.order)],
-    }),
-  ])
-
-  const blockIds = blocks.map((b) => b.id)
-  const translations =
-    blockIds.length > 0
-      ? await db.query.blockTranslations.findMany({
-          where: (t, { inArray }) => inArray(t.blockId, blockIds),
-        })
-      : []
-
-  const metaByLang = Object.fromEntries(
-    meta.map((m) => [m.lang, { ...m, id: undefined, pageId: undefined, lang: undefined }])
-  )
-
-  const layoutByLang = Object.fromEntries(
-    layout.map((l) => [
-      l.lang,
-      {
-        header: JSON.parse(l.header),
-        footer: JSON.parse(l.footer),
-        sidebar: JSON.parse(l.sidebar),
-      },
-    ])
-  )
-
-  const blocksFormatted = blocks.map((block) => {
-    const blockTranslations = translations.filter((t) => t.blockId === block.id)
-    const data = Object.fromEntries(
-      blockTranslations.map((t) => [t.lang, JSON.parse(t.data)])
-    )
-    return {
-      id: block.id,
-      type: block.type,
-      order: block.order,
-      enabled: block.enabled,
-      data,
-    }
-  })
-
-  return c.json({
-    data: {
-      meta: metaByLang,
-      layout: layoutByLang,
-      blocks: blocksFormatted,
-    },
-  })
-})
 
 // --- 404 fallback ---
 app.notFound((c) => {

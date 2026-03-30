@@ -1,4 +1,4 @@
-export type FieldType = 'string' | 'number' | 'boolean' | 'select' | 'object' | 'array' | 'tuple'
+export type FieldType = 'string' | 'number' | 'boolean' | 'select' | 'object' | 'array' | 'tuple' | 'image' | 'image-array'
 
 export type FieldDescriptor =
   | StringField
@@ -8,6 +8,8 @@ export type FieldDescriptor =
   | ObjectField
   | ArrayField
   | TupleField
+  | ImageField
+  | ImageArrayField
 
 export type StringField = {
   kind: 'string'
@@ -60,4 +62,16 @@ export type TupleField = {
   itemFields: FieldDescriptor[]
   length: number
   defaultItems: Record<string, unknown>[]
+}
+
+export type ImageField = {
+  kind: 'image'
+  key: string
+  label: string
+}
+
+export type ImageArrayField = {
+  kind: 'image-array'
+  key: string
+  label: string
 }

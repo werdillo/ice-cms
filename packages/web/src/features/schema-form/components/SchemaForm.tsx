@@ -1,5 +1,5 @@
 import { type Component, Index, createEffect, untrack } from 'solid-js'
-import { createStore, reconcile, produce } from 'solid-js/store'
+import { createStore, reconcile, produce, unwrap } from 'solid-js/store'
 import type { FieldDescriptor } from '../types'
 import { FieldRenderer } from './FieldRenderer'
 
@@ -36,8 +36,12 @@ export const SchemaForm: Component<SchemaFormProps> = (props) => {
       }
       cur[parts[parts.length - 1]] = value
     }))
-    // Notify parent with current store snapshot (shallow copy to break identity)
-    props.onChange({ ...store })
+    // Notify parent with a deep plain-object snapshot.
+    // { ...store } would give shallow store-proxy references — if the store is
+    // later mutated (e.g. by a language switch reconcile), those proxies would
+    // reflect the new values and silently corrupt saved state for other langs.
+    // unwrap() strips the proxy layer; structuredClone() deep-copies the result.
+    props.onChange(structuredClone(unwrap(store)))
   }
 
   return (

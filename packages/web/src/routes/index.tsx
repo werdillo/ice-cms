@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/solid-router'
+import { LANGS } from '@ice-cms/schemas'
 import { createSignal, onMount, Show } from 'solid-js'
 import { CollapsibleSection } from '../components/CollapsibleSection'
 import {
@@ -98,10 +99,24 @@ function App() {
               faqSectionMeta,
             ].find((m) => m.type === b.type) || mainSectionMeta
 
+          // Strip old/unknown fields by parsing each lang's data through the schema.
+          // safeParse strips unknown keys (e.g. old image1Src/image1Alt) and
+          // fills in defaults for new fields (e.g. image1: { src:'', alt:'' }).
+          const cleanData: BlockState['data'] = {}
+          for (const lang of LANGS) {
+            const raw = (b.data as Record<string, unknown>)[lang]
+            if (raw && typeof raw === 'object') {
+              const parsed = meta.schema.safeParse(raw)
+              cleanData[lang] = parsed.success
+                ? (parsed.data as Record<string, unknown>)
+                : (raw as Record<string, unknown>)
+            }
+          }
+
           return {
             id: b.id,
             meta,
-            data: b.data as Record<string, any>,
+            data: cleanData,
             enabled: b.enabled,
           }
         })

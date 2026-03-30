@@ -8,6 +8,8 @@ import type {
   ObjectField,
   ArrayField,
   TupleField,
+  ImageField,
+  ImageArrayField,
 } from '../types'
 import { StringInput } from './inputs/StringInput'
 import { NumberInput } from './inputs/NumberInput'
@@ -16,6 +18,9 @@ import { SelectInput } from './inputs/SelectInput'
 import { ObjectInput } from './inputs/ObjectInput'
 import { ArrayInput } from './inputs/ArrayInput'
 import { TupleInput } from './inputs/TupleInput'
+import { ImageInput } from './inputs/ImageInput'
+import { ImageArrayInput } from './inputs/ImageArrayInput'
+import type { ImageValue } from '../../../features/image-upload'
 
 export type FieldRendererProps = {
   field: FieldDescriptor
@@ -83,6 +88,22 @@ export const FieldRenderer: Component<FieldRendererProps> = (props) => {
         <TupleInput
           field={props.field as TupleField}
           value={() => (props.store[key()] as Record<string, unknown>[]) ?? []}
+          onChange={(v) => props.onFieldChange(key(), v)}
+        />
+      </Match>
+
+      <Match when={props.field.kind === 'image'}>
+        <ImageInput
+          field={props.field as ImageField}
+          value={() => (props.store[key()] as ImageValue) ?? { src: '', alt: '' }}
+          onChange={(v) => props.onFieldChange(key(), v)}
+        />
+      </Match>
+
+      <Match when={props.field.kind === 'image-array'}>
+        <ImageArrayInput
+          field={props.field as ImageArrayField}
+          value={() => (props.store[key()] as ImageValue[]) ?? []}
           onChange={(v) => props.onFieldChange(key(), v)}
         />
       </Match>

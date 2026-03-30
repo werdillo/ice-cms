@@ -16,13 +16,23 @@ export const SectionCard: Component<SectionCardProps> = (props) => {
   const [open, setOpen] = createSignal(props.defaultOpen ?? false)
   const [activeLang, setActiveLang] = createSignal<Lang>('lv')
 
-  // Initialize once — same pattern as BlockForm
+  // Initialize once — same pattern as BlockForm.
+  // Each language gets its own deep-cloned object so nested values (e.g. image
+  // objects) are never shared between langs, even when both come from the same reference.
   const [localData, setLocalData] = createSignal<Partial<Record<Lang, Record<string, unknown>>>>(
-    untrack(() => structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>)
+    untrack(() => {
+      const cloned = structuredClone(props.data) as Partial<Record<Lang, Record<string, unknown>>>
+      for (const lang of LANGS) {
+        if (!cloned[lang]) {
+          cloned[lang] = {}
+        }
+      }
+      return cloned
+    })
   )
   const [isDirty, setIsDirty] = createSignal(false)
 
-  const currentData = createMemo(() => localData()[activeLang()] ?? {})
+  const currentData = createMemo(() => (localData()[activeLang()] as Record<string, unknown>) ?? {})
 
   const handleChange = (updated: Record<string, unknown>) => {
     setLocalData((prev) => ({ ...prev, [activeLang()]: updated }))

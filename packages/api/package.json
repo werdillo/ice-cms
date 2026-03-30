@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:remote": "wrangler dev --remote",
     "deploy": "wrangler deploy",
     "cf-typegen": "wrangler types",
     "db:generate": "drizzle-kit generate",
@@ -14,6 +15,7 @@
   "dependencies": {
     "@hono/zod-validator": "^0.4.3",
     "@ice-cms/schemas": "workspace:*",
+    "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.44.7",
     "hono": "^4.12.8",
     "zod": "^3.25.76"

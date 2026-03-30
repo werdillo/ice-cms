@@ -9,6 +9,7 @@
     "dev": "bun run --filter '*' dev",
     "dev:web": "bun run --filter @ice-cms/web dev",
     "dev:api": "bun run --filter @ice-cms/api dev",
+    "dev:api:remote": "bun run --filter @ice-cms/api dev:remote",
     "build": "bun run --filter '*' build",
     "build:web": "bun run --filter @ice-cms/web build",
     "build:api": "bun run --filter @ice-cms/api build",
