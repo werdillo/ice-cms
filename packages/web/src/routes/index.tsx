@@ -29,7 +29,7 @@ import type { LayoutSectionsByLang } from '../features/layout-editor/types'
 import { apiFetch } from '../lib/api-fetch'
 import { authStore } from '../features/auth/auth.store'
 
-const API_BASE = 'http://localhost:8000/api/content'
+const API_BASE = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/content`
 const PUBLISH_URL = `${API_BASE}/publish`
 
 export const Route = createFileRoute('/')({
